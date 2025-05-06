@@ -218,5 +218,3 @@ mode "resize" {
 }
 
 bindsym Mod1+r mode "resize"
-
-exec --no-startup-id ghostty
