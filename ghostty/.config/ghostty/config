@@ -41,3 +41,14 @@
 # # which is explained in the docs for that config option.
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
+
+# Set transparency
+background-opacity = 0.7
+background-blur-radius = 10
+
+# Make terminal more transparent
+# background-opacity = 0.85
+# background-blur-radius = 20 
+
+# Set a bright purple background
+# background = #FF00FF 
