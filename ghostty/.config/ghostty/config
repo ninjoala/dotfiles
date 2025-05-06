@@ -46,8 +46,7 @@
 # background-opacity = 0.7
 # background-blur-radius = 10
 
-# Enable Ctrl+C and Ctrl+V for copy and paste
-keybind = ctrl+c=copy_to_clipboard
+# Enable Ctrl+V for paste
 keybind = ctrl+v=paste_from_clipboard
 
 # Make terminal more transparent
