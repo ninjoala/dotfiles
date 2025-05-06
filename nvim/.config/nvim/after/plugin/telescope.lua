@@ -18,24 +18,8 @@ telescope.setup({
     },
 })
 
--- Debug function
-local function debug_find_files()
-    local cwd = vim.fn.getcwd()
-    print("Current working directory:", cwd)
-    print("Running find_files...")
-    builtin.find_files({
-        find_command = {
-            "rg",
-            "--files",
-            "--hidden",
-            "--glob=!.git/*"
-        },
-        cwd = cwd,
-    })
-end
-
 -- Keymaps
-vim.keymap.set('n', '<leader>pf', debug_find_files, {})
+vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
 vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
 vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
 vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
