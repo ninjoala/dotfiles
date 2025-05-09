@@ -4,9 +4,22 @@ return {
     "folke/tokyonight.nvim",
     lazy = false,
     priority = 1000,
+    opts = {},
     config = function()
-      vim.cmd([[colorscheme tokyonight]])
+      require("tokyonight").setup({
+        style = "storm",
+        transparent = true,
+        terminal_colors = true,
+      })
+      vim.cmd.colorscheme("tokyonight")
     end,
+  },
+
+  -- Harpoon
+  {
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = { "nvim-lua/plenary.nvim" },
   },
 
   -- LSP Support
