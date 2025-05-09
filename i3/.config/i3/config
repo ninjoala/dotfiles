@@ -221,3 +221,5 @@ mode "resize" {
 }
 
 bindsym Mod1+r mode "resize"
+exec --no-startup-id thunar --daemon
+exec --no-startup-id /usr/lib/xfce4/xfconf/xfconfd
