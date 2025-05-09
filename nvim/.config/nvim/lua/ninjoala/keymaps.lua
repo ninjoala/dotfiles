@@ -7,3 +7,8 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
+
+-- Telescope
+map("n", "<leader>ps", function()
+    require('telescope.builtin').live_grep()
+end, opts)
