@@ -30,6 +30,8 @@
         "memory",
         "cpu",
         "temperature",
+        "backlight",
+        "pulseaudio",
         "custom/keyboard-layout",
         "battery",
         "tray",
@@ -146,22 +148,31 @@
         "tooltip": false
     },
 
-    //"pulseaudio": {
-    //    //"scroll-step": 1,
-    //    "format": "{icon}  {volume}%",
-    //    "format-bluetooth": "{icon}  {volume}%",
-    //    "format-muted": "",
-    //    "format-icons": {
-    //        "headphones": "",
-    //        "handsfree": "",
-    //        "headset": "",
-    //        "phone": "",
-    //        "portable": "",
-    //        "car": "",
-    //        "default": ["", ""]
-    //    },
-    //    "on-click": "pavucontrol"
-    //},
+    "backlight": {
+        "device": "intel_backlight",
+        "format": "Brightness: {percent}%",
+        "format-icons": ["", ""],
+        "on-scroll-up": "brightnessctl set +5%",
+        "on-scroll-down": "brightnessctl set 5%-",
+        "min-length": 6
+    },
+
+    "pulseaudio": {
+        "scroll-step": 5,
+        "format": "Volume: {volume}%",
+        "format-bluetooth": "Volume: {volume}%",
+        "format-muted": "Volume: muted",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": ["", "", ""]
+        },
+        "on-click": "pavucontrol"
+    },
 
     "temperature": {
       "critical-threshold": 80,
