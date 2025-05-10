@@ -42,16 +42,9 @@
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
 
-# Set transparency
-# background-opacity = 0.7
-# background-blur-radius = 10
-
 # Enable Ctrl+V for paste
 keybind = ctrl+v=paste_from_clipboard
 
-# Make terminal more transparent
-# background-opacity = 0.85
-# background-blur-radius = 20 
 
 # Set a bright purple background
 # background = #FF00FF 
@@ -61,6 +54,5 @@ font-family = JetBrainsMono Nerd Font
 font-size = 12
 
 # Performance settings
-window-decoration = false
-background-opacity = 1.0
-background-blur-radius = 0
+background-opacity = 0.9
+background-blur-radius = 10
