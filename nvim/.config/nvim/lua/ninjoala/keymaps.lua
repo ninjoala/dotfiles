@@ -6,7 +6,7 @@ local opts = { noremap = true, silent = true }
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
-vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
+vim.keymap.set("n", "<leader>pv", function() vim.cmd("Ex") end)
 
 -- Basic keymaps that don't depend on plugins
 map("n", "<leader>ps", function()

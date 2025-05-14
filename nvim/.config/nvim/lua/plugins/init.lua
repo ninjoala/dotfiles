@@ -24,23 +24,68 @@ return {
 
   -- LSP Support
   {
-    "neovim/nvim-lspconfig",
+    'VonHeikemen/lsp-zero.nvim',
+    branch = 'v3.x',
+    lazy = true,
+    config = false,
+    init = function()
+      -- Disable automatic setup, we are doing it manually
+      vim.g.lsp_zero_extend_cmp = 0
+      vim.g.lsp_zero_extend_lspconfig = 0
+    end,
+  },
+  {
+    'williamboman/mason.nvim',
+    lazy = false,
+    config = true,
+  },
+
+  {
+    'williamboman/mason-lspconfig.nvim',
+    lazy = false,
+    config = true,
+    opts = {
+      ensure_installed = {},
+    },
+  },
+
+  {
+    'neovim/nvim-lspconfig',
+    cmd = {'LspInfo', 'LspInstall', 'LspStart'},
+    event = {'BufReadPre', 'BufNewFile'},
     dependencies = {
-      "williamboman/mason.nvim",
-      "williamboman/mason-lspconfig.nvim",
+      {'hrsh7th/cmp-nvim-lsp'},
+      {'williamboman/mason-lspconfig.nvim'},
     },
   },
 
   -- Autocompletion
   {
     "hrsh7th/nvim-cmp",
+    event = 'InsertEnter',
     dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
-      "hrsh7th/cmp-buffer",
-      "hrsh7th/cmp-path",
-      "L3MON4D3/LuaSnip",
-      "saadparwaiz1/cmp_luasnip",
+      {'L3MON4D3/LuaSnip'},
     },
+    config = function()
+      -- Here is where you configure the autocompletion settings.
+      local lsp_zero = require('lsp-zero')
+      lsp_zero.extend_cmp()
+
+      -- And you can configure cmp even more, if you want to.
+      local cmp = require('cmp')
+      local cmp_action = lsp_zero.cmp_action()
+
+      cmp.setup({
+        formatting = lsp_zero.cmp_format(),
+        mapping = cmp.mapping.preset.insert({
+          ['<C-Space>'] = cmp.mapping.complete(),
+          ['<C-u>'] = cmp.mapping.scroll_docs(-4),
+          ['<C-d>'] = cmp.mapping.scroll_docs(4),
+          ['<C-f>'] = cmp_action.luasnip_jump_forward(),
+          ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+        })
+      })
+    end
   },
 
   -- Treesitter
@@ -54,9 +99,9 @@ return {
     "nvim-telescope/telescope.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      { 
+      {
         "nvim-telescope/telescope-fzf-native.nvim",
-        build = "make"
+        build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build"
       }
     },
     config = function()
@@ -87,7 +132,8 @@ return {
           },
         },
       })
-      telescope.load_extension("fzf")
+      -- Only try to load fzf if it exists
+      pcall(telescope.load_extension, "fzf")
     end,
   },
 
