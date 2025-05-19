@@ -6,6 +6,9 @@ local opts = { noremap = true, silent = true }
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+-- Ensure clipboard settings are correct
+vim.opt.clipboard = "unnamedplus"  -- Use system clipboard by default
+
 vim.keymap.set("n", "<leader>pv", function() vim.cmd("Ex") end)
 
 -- Basic keymaps that don't depend on plugins
@@ -14,13 +17,18 @@ map("n", "<leader>ps", function()
 end, opts)
 
 -- Clipboard keymaps for tmux integration
+-- Yank to system clipboard
 map("n", "<leader>y", '"+y', opts)
 map("v", "<leader>y", '"+y', opts)
 map("n", "<leader>yy", '"+yy', opts)
+-- Paste from system clipboard
 map("n", "<leader>p", '"+p', opts)
 map("n", "<leader>P", '"+P', opts)
 map("v", "<leader>p", '"+p', opts)
 map("v", "<leader>P", '"+P', opts)
+-- Delete to black hole register (won't affect clipboard)
+map("n", "dd", '"_dd', opts)
+map("v", "d", '"_d', opts)
 
 -- Load plugin-specific keymaps after plugins are initialized
 vim.api.nvim_create_autocmd("User", {
