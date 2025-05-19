@@ -13,6 +13,15 @@ map("n", "<leader>ps", function()
     require('telescope.builtin').live_grep()
 end, opts)
 
+-- Clipboard keymaps for tmux integration
+map("n", "<leader>y", '"+y', opts)
+map("v", "<leader>y", '"+y', opts)
+map("n", "<leader>yy", '"+yy', opts)
+map("n", "<leader>p", '"+p', opts)
+map("n", "<leader>P", '"+P', opts)
+map("v", "<leader>p", '"+p', opts)
+map("v", "<leader>P", '"+P', opts)
+
 -- Load plugin-specific keymaps after plugins are initialized
 vim.api.nvim_create_autocmd("User", {
     pattern = "LazyLoad",
