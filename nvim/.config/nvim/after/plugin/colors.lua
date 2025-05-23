@@ -1,13 +1,10 @@
--- This file is loaded after all other configurations
--- You can use this to override plugin settings or add final configurations
 
--- Set colorscheme
-vim.cmd([[colorscheme tokyonight]])
+function ColorMyPencils(color)
+	color = color or "rose-pine"
+	vim.cmd.colorscheme(color)
 
--- Additional color settings
-vim.cmd([[
-  hi Normal guibg=NONE ctermbg=NONE
-  hi LineNr guibg=NONE ctermbg=NONE
-  hi SignColumn guibg=NONE ctermbg=NONE
-  hi EndOfBuffer guibg=NONE ctermbg=NONE
-]]) 
+	vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
+	vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
+end
+
+ColorMyPencils()
