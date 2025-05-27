@@ -15,6 +15,14 @@ return {
     end,
   },
 
+  -- Rose-Pine theme
+  {
+    "rose-pine/neovim",
+    name = "rose-pine",
+    lazy = false,
+    priority = 1001,
+  },
+
   -- Harpoon
   {
     "ThePrimeagen/harpoon",
@@ -45,7 +53,7 @@ return {
     lazy = false,
     config = true,
     opts = {
-      ensure_installed = {},
+      ensure_installed = { 'lua_ls', 'csharp_ls' },
     },
   },
 
