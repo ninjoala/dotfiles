@@ -53,7 +53,8 @@ return {
     lazy = false,
     config = true,
     opts = {
-      ensure_installed = { 'lua_ls', 'csharp_ls' },
+      ensure_installed = { 'lua_ls', 'omnisharp' },
+      automatic_installation = true,
     },
   },
 
@@ -82,7 +83,7 @@ return {
         vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, opts)
       end
 
-      lspconfig.csharp_ls.setup {
+      lspconfig.omnisharp.setup {
         capabilities = capabilities,
         on_attach = on_attach,
         root_dir = require('lspconfig.util').root_pattern("*.sln", "*.csproj", ".git"),
