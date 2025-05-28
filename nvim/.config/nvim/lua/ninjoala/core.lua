@@ -20,6 +20,10 @@ vim.api.nvim_create_autocmd("User", {
   end,
 })
 
+-- Netrw settings to fix jumplist behavior
+vim.g.netrw_keepj = 1  -- Don't add netrw browsing to the jumplist
+vim.g.netrw_fastbrowse = 0  -- Don't reuse netrw buffers (cleaner jumplist)
+
 -- Core Neovim settings
 local opt = vim.opt
 

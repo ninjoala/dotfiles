@@ -9,7 +9,13 @@ vim.g.maplocalleader = " "
 -- Ensure clipboard settings are correct
 vim.opt.clipboard = "unnamedplus"  -- Use system clipboard by default
 
-vim.keymap.set("n", "<leader>pv", function() vim.cmd("Ex") end)
+-- Netrw with better buffer handling
+vim.keymap.set("n", "<leader>pv", function()
+    -- Clear jumplist before opening netrw
+    vim.cmd('clearjumps')
+    -- Open netrw in the current window
+    vim.cmd('Ex')
+end, { noremap = true, silent = true })
 
 -- Basic keymaps that don't depend on plugins
 map("n", "<leader>ps", function()

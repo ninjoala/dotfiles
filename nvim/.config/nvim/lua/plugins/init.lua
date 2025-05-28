@@ -278,6 +278,10 @@ return {
             "--column",
             "--smart-case",
           },
+          buffer_previewer_maker = require('telescope.previewers').buffer_previewer_maker,
+          preview = {
+            hide_on_startup = true
+          }
         },
         pickers = {
           find_files = {
@@ -289,7 +293,7 @@ return {
               return {"--hidden"}
             end
           },
-        },
+        }
       })
       -- Only try to load fzf if it exists
       pcall(telescope.load_extension, "fzf")
