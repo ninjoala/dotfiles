@@ -62,20 +62,32 @@ vim.api.nvim_create_autocmd("User", {
     end,
 })
 
+-- Global LSP keymaps (single source of truth for all LSP servers)
 vim.api.nvim_create_autocmd('LspAttach', {
   callback = function(args)
     local bufnr = args.buf
     local opts = { buffer = bufnr, noremap = true, silent = true }
+    
+    -- LSP navigation
     vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+    vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+    vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+    
+    -- LSP actions
     vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-    vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, opts)
-    vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
-    vim.keymap.set('n', '[d', vim.diagnostic.goto_next, opts)
-    vim.keymap.set('n', ']d', vim.diagnostic.goto_prev, opts)
     vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-    vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, opts)
     vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
     vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, opts)
+    
+    -- Diagnostics
+    vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
+    vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
+    vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
+    
+    -- Workspace
+    vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, opts)
   end,
 })
 

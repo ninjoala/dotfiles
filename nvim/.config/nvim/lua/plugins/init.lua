@@ -4,7 +4,6 @@ return {
     "folke/tokyonight.nvim",
     lazy = false,
     priority = 1000,
-    opts = {},
     config = function()
       require("tokyonight").setup({
         style = "storm",
@@ -15,14 +14,6 @@ return {
     end,
   },
 
-  -- Rose-Pine theme
-  {
-    "rose-pine/neovim",
-    name = "rose-pine",
-    lazy = false,
-    priority = 1001,
-  },
-
   -- Harpoon
   {
     "ThePrimeagen/harpoon",
@@ -30,337 +21,374 @@ return {
     dependencies = { "nvim-lua/plenary.nvim" },
   },
 
-  -- LSP Support
-  {
-    'VonHeikemen/lsp-zero.nvim',
-    branch = 'v3.x',
-    lazy = true,
-    config = false,
-    init = function()
-      -- Disable automatic setup, we are doing it manually
-      vim.g.lsp_zero_extend_cmp = 0
-      vim.g.lsp_zero_extend_lspconfig = 0
-    end,
-  },
+  -- Mason (LSP installer)
   {
     "williamboman/mason.nvim",
-    build = ":MasonUpdate", -- :MasonUpdate updates registry contents
-    opts = {
-      registries = {
-        "github:mason-org/mason-registry",
-        "github:Crashdummyy/mason-registry",
-      },
-    },
-  },
-
-  {
-    'williamboman/mason-lspconfig.nvim',
-    event = "VeryLazy",
-    dependencies = {
-      "williamboman/mason.nvim",
-    },
-    opts = {
-      ensure_installed = { 'lua_ls' },
-      automatic_installation = true,
-      handlers = {
-        function(server_name)
-          -- Skip both OmniSharp and C# since we're using roslyn
-          if server_name == "omnisharp" or server_name == "csharp_ls" then
-            return
-          end
-          require("lspconfig")[server_name].setup {}
-        end,
-      },
-    },
-  },
-
-  -- Make sure roslyn.nvim is loaded before lspconfig
-  {
-    "seblyng/roslyn.nvim",
-    dependencies = {
-      "neovim/nvim-lspconfig",
-    },
-    ft = { "cs" },
-    opts = {
-      -- Use roslyn's file watching instead of neovim's
-      filewatching = "roslyn",
-      -- Search for solutions in parent directories
-      broad_search = true,
-      -- Don't lock the solution target to allow proper reloading
-      lock_target = false,
-      -- Optional function to choose the correct solution
-      choose_target = function(targets)
-        -- If there's only one target, use it
-        if #targets == 1 then
-          return targets[1]
-        end
-        -- Otherwise, prefer .sln files
-        return vim.iter(targets):find(function(item)
-          return vim.endswith(item, ".sln")
-        end)
-      end
-    },
-    config = function(_, opts)
-      local roslyn = require("roslyn")
-      roslyn.setup(opts)
-
-      -- Configure LSP settings after setup
-      vim.lsp.config("roslyn", {
-        on_attach = function(client, bufnr)
-          -- Enable completion triggered by <c-x><c-o>
-          vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-          local opts = { buffer = bufnr, noremap = true, silent = true }
-          vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-          vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-          vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-          vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-          vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-          vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
-          vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-          vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-          vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-          vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, opts)
-          vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
-          vim.keymap.set('n', '[d', vim.diagnostic.goto_next, opts)
-          vim.keymap.set('n', ']d', vim.diagnostic.goto_prev, opts)
-
-          -- Disable semantic tokens
-          client.server_capabilities.semanticTokensProvider = nil
-        end,
-        settings = {
-          ["csharp|background_analysis"] = {
-            background_analysis_dotnet_analyzer_diagnostics_scope = "none",
-            background_analysis_dotnet_compiler_diagnostics_scope = "none"
-          },
-          ["csharp|completion"] = {
-            dotnet_provide_regex_completions = false,
-            dotnet_show_completion_items_from_unimported_namespaces = true
-          },
-          ["csharp|inlay_hints"] = {
-            csharp_enable_inlay_hints_for_implicit_object_creation = true,
-            csharp_enable_inlay_hints_for_implicit_variable_types = true
+    build = ":MasonUpdate",
+    config = function()
+      require("mason").setup({
+        ui = {
+          icons = {
+            package_installed = "✓",
+            package_pending = "➜",
+            package_uninstalled = "✗"
           }
-        },
-        init_options = {
-          AutomaticWorkspaceInit = true,
-          SolutionLoadBehavior = "CurrentSolution",
-          AnalyzerConfigFiles = {},
-          EnableSingleFileSupport = true,
-          EnableProjectDiagnostics = false,
-          EnableAnalyzers = false,
-          EnableSemanticTokens = false,
-          EnableDecompilationSupport = false,
-          EnableImportCompletion = true,
-          EnableAnalyzerSupport = false,
-          DiagnosticMode = "Document",
-          SolutionPattern = "*.sln"
         }
       })
-
-      -- Add an autocmd to restart the server when switching projects
-      vim.api.nvim_create_autocmd("BufEnter", {
-        pattern = "*.cs",
-        callback = function(args)
-          local current_buf = args.buf
-          local current_file = vim.api.nvim_buf_get_name(current_buf)
-          
-          -- Only restart if we're switching between different projects
-          if vim.b[current_buf].last_project ~= vim.fn.fnamemodify(current_file, ":p:h") then
-            vim.b[current_buf].last_project = vim.fn.fnamemodify(current_file, ":p:h")
-            vim.schedule(function()
-              vim.cmd("Roslyn restart")
-            end)
-          end
-        end
-      })
-    end
+    end,
   },
 
+  -- Mason-LSPConfig bridge
+  {
+    'williamboman/mason-lspconfig.nvim',
+    event = { "BufReadPre", "BufNewFile" },
+    dependencies = { "williamboman/mason.nvim" },
+    config = function()
+      require("mason-lspconfig").setup({
+        ensure_installed = { 
+          'lua_ls',
+          'omnisharp', 
+          'pyright', 
+          'ts_ls',
+          'html',
+          'cssls',
+          'jsonls'
+        },
+        automatic_installation = true,
+      })
+    end,
+  },
+
+  -- LSP Configuration
   {
     'neovim/nvim-lspconfig',
-    cmd = {'LspInfo', 'LspInstall', 'LspStart'},
-    event = {'BufReadPre', 'BufNewFile'},
+    event = { "BufReadPre", "BufNewFile" },
     dependencies = {
-      {'hrsh7th/cmp-nvim-lsp'},
-      {'williamboman/mason-lspconfig.nvim'},
+      'williamboman/mason-lspconfig.nvim',
+      'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
       local lspconfig = require('lspconfig')
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      
-      -- Disable semantic tokens in capabilities
-      capabilities.textDocument.semanticTokens = nil
-      
-      local on_attach = function(client, bufnr)
-        -- Enable completion triggered by <c-x><c-o>
-        vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
-        local opts = { buffer = bufnr, noremap = true, silent = true }
-        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-        vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-        vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-        vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-        vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-        vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
-        vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-        vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-        vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-        vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, opts)
-        vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
-        vim.keymap.set('n', '[d', vim.diagnostic.goto_next, opts)
-        vim.keymap.set('n', ']d', vim.diagnostic.goto_prev, opts)
+      -- Global diagnostic configuration (single source of truth)
+      vim.diagnostic.config({
+        virtual_text = {
+          spacing = 4,
+          prefix = "●",
+        },
+        signs = true,
+        underline = true,
+        update_in_insert = false,
+        severity_sort = true,
+        float = {
+          focusable = false,
+          style = "minimal",
+          border = "rounded",
+          source = "always",
+          header = "",
+          prefix = "",
+        },
+      })
+
+      -- Diagnostic signs
+      local signs = { Error = "󰅚 ", Warn = "󰀪 ", Hint = "󰌶 ", Info = " " }
+      for type, icon in pairs(signs) do
+        local hl = "DiagnosticSign" .. type
+        vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
       end
 
-      -- Python LSP (Pyright)
-      local mason_path = vim.fn.stdpath("data") .. "/mason"
-      local pyright_path = mason_path .. "/packages/pyright/node_modules/pyright/langserver.index.js"
-      lspconfig.pyright.setup {
-        cmd = { "node", pyright_path, "--stdio" },
+      -- Set LSP log level
+      vim.lsp.set_log_level("WARN")
+
+      -- Default LSP servers (simple setup)
+      local simple_servers = { 'lua_ls', 'pyright', 'ts_ls', 'html', 'cssls', 'jsonls' }
+      for _, server in ipairs(simple_servers) do
+        lspconfig[server].setup({
+          capabilities = capabilities,
+        })
+      end
+
+      -- Omnisharp (complex setup with error fixes)
+      lspconfig.omnisharp.setup({
         capabilities = capabilities,
-        on_attach = on_attach,
+        cmd = { 
+          vim.fn.stdpath("data") .. "/mason/bin/OmniSharp", 
+          "--languageserver", 
+          "--hostPID", tostring(vim.fn.getpid()),
+          -- Resource limits and aggressive optimizations
+          "--DotNet:EnablePackageRestore=false",
+          "--RoslynExtensionsOptions:EnableAnalyzersSupport=false",
+          "--RoslynExtensionsOptions:EnableImportCompletion=false", 
+          "--RoslynExtensionsOptions:EnableDecompilationSupport=false",
+          "--RoslynExtensionsOptions:EnableAsyncCompletion=false",
+          "--FormattingOptions:EnableEditorConfigSupport=false",
+          "--MsBuild:LoadProjectsOnDemand=true",
+          "--MsBuild:EnablePackageAutoRestore=false",
+          "--MsBuild:UseLegacySdkResolver=true",
+          "--MsBuild:SkipNonexistentProjectFiles=true",
+          "--Sdk:IncludePrereleases=false",
+          "--Script:EnableScriptNuGetReferences=false",
+          "--BackgroundAnalysis:AnalyzerDiagnosticsScope=none",
+          "--BackgroundAnalysis:CompilerDiagnosticsScope=openFiles",
+          -- File exclusions to reduce scanning
+          "--FileOptions:SystemExcludeSearchPatterns:0=**/bin/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:1=**/obj/**/*", 
+          "--FileOptions:SystemExcludeSearchPatterns:2=**/.git/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:3=**/node_modules/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:4=**/packages/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:5=**/.vs/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:6=**/TestResults/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:7=**/.vscode/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:8=**/coverage/**/*",
+          "--FileOptions:SystemExcludeSearchPatterns:9=**/*.log",
+          "--FileOptions:SystemExcludeSearchPatterns:10=**/logs/**/*",
+          -- Memory and performance limits
+          "--Assembly:LoadFromDisk=false"
+        },
+        filetypes = { "cs" },
+        root_dir = function(fname)
+          -- Simplified root detection to avoid excessive file scanning
+          local util = require('lspconfig.util')
+          return util.root_pattern("*.sln", "*.csproj")(fname) or util.path.dirname(fname)
+        end,
+        single_file_support = true,
+        -- Add timeout and resource limits
+        flags = {
+          debounce_text_changes = 1000, -- Increase debounce to reduce CPU
+          allow_incremental_sync = false, -- Disable incremental sync
+          exit_timeout = 3000, -- 3 second timeout
+        },
+        on_attach = function(client, bufnr)
+          -- AGGRESSIVELY disable ALL resource-intensive capabilities
+          client.server_capabilities.semanticTokensProvider = nil
+          client.server_capabilities.documentFormattingProvider = nil
+          client.server_capabilities.documentRangeFormattingProvider = nil
+          client.server_capabilities.documentSymbolProvider = nil
+          client.server_capabilities.workspaceSymbolProvider = nil
+          client.server_capabilities.codeActionProvider = nil
+          client.server_capabilities.documentLinkProvider = nil
+          client.server_capabilities.foldingRangeProvider = nil
+          client.server_capabilities.selectionRangeProvider = nil
+          client.server_capabilities.callHierarchyProvider = nil
+          client.server_capabilities.documentHighlightProvider = nil
+          client.server_capabilities.inlayHintProvider = nil
+          -- Disable workspace features
+          client.server_capabilities.workspace = nil
+          
+          -- Monitor CPU usage and warn
+          vim.defer_fn(function()
+            local pid_check = vim.fn.system("pgrep -f OmniSharp | head -1 | tr -d '\n'")
+            if pid_check ~= "" then
+              local cpu_usage = vim.fn.system("ps -p " .. pid_check .. " -o %cpu --no-headers | tr -d ' \n'")
+              if tonumber(cpu_usage) and tonumber(cpu_usage) > 20 then
+                vim.notify("⚠️ Omnisharp using " .. cpu_usage .. "% CPU. Consider :OmnisharpKill", vim.log.levels.WARN)
+              end
+            end
+          end, 3000)
+          
+          vim.notify("✓ Ultra-minimal Omnisharp attached to " .. vim.fn.expand('%:t'), vim.log.levels.INFO)
+        end,
+        -- Ultra-minimal settings
         settings = {
-          python = {
-            analysis = {
-              autoSearchPaths = true,
-              diagnosticMode = "workspace",
-              useLibraryCodeForTypes = true
-            }
+          FormattingOptions = {
+            EnableEditorConfigSupport = false,
+            OrganizeImports = false,
+          },
+          MsBuild = {
+            LoadProjectsOnDemand = true,
+            EnablePackageAutoRestore = false,
+            UseLegacySdkResolver = true,
+            SkipNonexistentProjectFiles = true,
+          },
+          RoslynExtensionsOptions = {
+            EnableAnalyzersSupport = false,
+            EnableImportCompletion = false,
+            EnableDecompilationSupport = false,
+            EnableAsyncCompletion = false,
+            LocationPaths = {},
+          },
+          Sdk = {
+            IncludePrereleases = false,
+          },
+          FileOptions = {
+            SystemExcludeSearchPatterns = {
+              "**/bin/**/*", "**/obj/**/*", "**/.git/**/*", 
+              "**/node_modules/**/*", "**/packages/**/*", 
+              "**/.vs/**/*", "**/TestResults/**/*", "**/.vscode/**/*",
+              "**/coverage/**/*", "**/*.log", "**/logs/**/*"
+            },
+            ExcludeSearchPatterns = {},
+          },
+          -- Disable background analysis
+          BackgroundAnalysis = {
+            AnalyzerDiagnosticsScope = "none",
+            CompilerDiagnosticsScope = "openFiles"
+          },
+          InlayHints = {
+            EnableForParameters = false,
+            EnableForLiterals = false,
+            EnableForIndexerParameters = false,
+            EnableForObjectCreationParameters = false,
+            EnableForOtherParameters = false,
           }
         },
-        root_dir = require('lspconfig.util').root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git"),
-      }
-
-      -- JavaScript/TypeScript LSP (ts_ls)
-      lspconfig.ts_ls.setup {
-        cmd = { vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server", "--stdio" },
-        filetypes = {
-          "javascript",
-          "javascriptreact",
-          "javascript.jsx",
-          "typescript",
-          "typescriptreact",
-          "typescript.tsx",
+        init_options = {
+          ["DotNet:EnablePackageRestore"] = false,
+          ["RoslynExtensionsOptions:EnableAnalyzersSupport"] = false,
+          ["RoslynExtensionsOptions:EnableAsyncCompletion"] = false,
+          ["FormattingOptions:EnableEditorConfigSupport"] = false,
+          ["BackgroundAnalysis:AnalyzerDiagnosticsScope"] = "none",
+          ["BackgroundAnalysis:CompilerDiagnosticsScope"] = "openFiles",
+          ["MsBuild:LoadProjectsOnDemand"] = true,
         },
-        root_dir = require('lspconfig.util').root_pattern(
-          "tsconfig.json",
-          "jsconfig.json",
-          "package.json",
-          ".git"
-        ),
-        single_file_support = true,
-        capabilities = capabilities,
-        on_attach = on_attach,
-      }
+        handlers = {
+          -- Disable ALL resource-intensive handlers
+          ["textDocument/semanticTokens/full"] = function() end,
+          ["textDocument/semanticTokens/range"] = function() end,
+          ["textDocument/documentSymbol"] = function() end,
+          ["workspace/symbol"] = function() end,
+          ["textDocument/codeAction"] = function() end,
+          ["textDocument/formatting"] = function() end,
+          ["textDocument/rangeFormatting"] = function() end,
+          ["textDocument/inlayHint"] = function() end,
+          ["textDocument/documentHighlight"] = function() end,
+          ["window/logMessage"] = function(err, result, ctx)
+            -- Filter out ALL non-critical messages
+            if result and result.message then
+              local msg = result.message:lower()
+              if string.find(msg, "analyzer") or 
+                 string.find(msg, "microsoft.codeanalysis") or
+                 string.find(msg, "microsoft.extensions") or
+                 string.find(msg, "loading") or
+                 string.find(msg, "package") or
+                 string.find(msg, "restore") or
+                 string.find(msg, "project") then
+                return  -- Silently ignore
+              end
+            end
+            -- Only show errors and critical info
+            if result and result.type <= 1 then -- Error level
+              vim.lsp.handlers["window/logMessage"](err, result, ctx)
+            end
+          end,
+        }
+      })
     end,
   },
 
-  -- Autocompletion
+  -- Autocompletion (simplified, removed lsp-zero dependency)
   {
     "hrsh7th/nvim-cmp",
     event = 'InsertEnter',
     dependencies = {
-      {'L3MON4D3/LuaSnip'},
-      "saadparwaiz1/cmp_luasnip",
-      "hrsh7th/cmp-buffer",
+      'L3MON4D3/LuaSnip',
+      'saadparwaiz1/cmp_luasnip',
+      'hrsh7th/cmp-buffer',
+      'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
-      -- Here is where you configure the autocompletion settings.
-      local lsp_zero = require('lsp-zero')
-      lsp_zero.extend_cmp()
-
-      -- And you can configure cmp even more, if you want to.
       local cmp = require('cmp')
-      local cmp_action = lsp_zero.cmp_action()
+      local luasnip = require('luasnip')
 
       cmp.setup({
         snippet = {
           expand = function(args)
-            require('luasnip').lsp_expand(args.body)
+            luasnip.lsp_expand(args.body)
           end,
         },
-        formatting = lsp_zero.cmp_format(),
         mapping = cmp.mapping.preset.insert({
           ['<C-Space>'] = cmp.mapping.complete(),
           ['<C-u>'] = cmp.mapping.scroll_docs(-4),
           ['<C-d>'] = cmp.mapping.scroll_docs(4),
-          ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-          ['<C-f>'] = cmp.mapping.scroll_docs(4),
           ['<C-e>'] = cmp.mapping.abort(),
           ['<CR>'] = cmp.mapping.confirm({ select = true }),
-          ['<Tab>'] = cmp.mapping.confirm({ select = true }),
-          ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-          ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+          ['<Tab>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif luasnip.expand_or_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              fallback()
+            end
+          end, { 'i', 's' }),
+          ['<S-Tab>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            elseif luasnip.jumpable(-1) then
+              luasnip.jump(-1)
+            else
+              fallback()
+            end
+          end, { 'i', 's' }),
         }),
         sources = cmp.config.sources({
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' },
-        }, {
-          { name = 'buffer' },
-        })
+          { name = 'nvim_lsp', priority = 1000 },
+          { name = 'luasnip', priority = 750 },
+          { name = 'buffer', priority = 500 },
+        }),
+        formatting = {
+          format = function(entry, vim_item)
+            vim_item.menu = ({
+              nvim_lsp = "[LSP]",
+              luasnip = "[Snippet]",
+              buffer = "[Buffer]",
+            })[entry.source.name]
+            return vim_item
+          end,
+        },
       })
     end
   },
 
-  -- Treesitter
+  -- Treesitter (properly configured)
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = {
-      ensure_installed = {
-        "vim",
-        "lua",
-        "vimdoc",
-        "html",
-        "css",
-        "c_sharp",
-        "bicep"
-      },
-    },
+    build = ":TSUpdate",
+    event = { "BufReadPost", "BufNewFile" },
+    config = function()
+      require('nvim-treesitter.configs').setup({
+        ensure_installed = {
+          "vim", "lua", "vimdoc",
+          "html", "css", "javascript", "typescript",
+          "c_sharp", "python", "json", "bicep"
+        },
+        sync_install = false,
+        auto_install = true,
+        highlight = {
+          enable = true,
+          additional_vim_regex_highlighting = false,
+        },
+        indent = { enable = true },
+      })
+    end,
   },
 
-  -- Telescope (fuzzy finder)
+  -- Telescope
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
       {
         "nvim-telescope/telescope-fzf-native.nvim",
-        build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build"
+        build = "make"  -- Simplified build command
       }
     },
     config = function()
       local telescope = require("telescope")
       telescope.setup({
         defaults = {
-          file_ignore_patterns = { "node_modules", ".git/" },
+          file_ignore_patterns = { "node_modules", ".git/", "*.pyc" },
           path_display = { "truncate" },
-          vimgrep_arguments = {
-            "rg",
-            "--color=never",
-            "--no-heading",
-            "--with-filename",
-            "--line-number",
-            "--column",
-            "--smart-case",
+          layout_config = {
+            horizontal = { preview_width = 0.6 },
           },
-          buffer_previewer_maker = require('telescope.previewers').buffer_previewer_maker,
-          preview = {
-            hide_on_startup = true
-          }
         },
         pickers = {
-          find_files = {
-            theme = "dropdown",
-          },
-          live_grep = {
-            theme = "dropdown",
-            additional_args = function()
-              return {"--hidden"}
-            end
-          },
+          find_files = { theme = "dropdown" },
+          live_grep = { theme = "dropdown" },
         }
       })
-      -- Only try to load fzf if it exists
       pcall(telescope.load_extension, "fzf")
     end,
   },
@@ -368,17 +396,41 @@ return {
   -- Git integration
   {
     "lewis6991/gitsigns.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
-    config = true,
+    event = { "BufReadPre", "BufNewFile" },
+    config = function()
+      require('gitsigns').setup({
+        signs = {
+          add = { text = '│' },
+          change = { text = '│' },
+          delete = { text = '_' },
+          topdelete = { text = '‾' },
+          changedelete = { text = '~' },
+          untracked = { text = '┆' },
+        },
+      })
+    end,
   },
 
-  -- Status line
+  -- Status line (properly configured)
   {
     "nvim-lualine/lualine.nvim",
-    dependencies = {
-      "nvim-tree/nvim-web-devicons",
-    },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require('lualine').setup({
+        options = {
+          theme = 'tokyonight',
+          component_separators = '|',
+          section_separators = '',
+        },
+        sections = {
+          lualine_a = {'mode'},
+          lualine_b = {'branch', 'diff', 'diagnostics'},
+          lualine_c = {'filename'},
+          lualine_x = {'encoding', 'fileformat', 'filetype'},
+          lualine_y = {'progress'},
+          lualine_z = {'location'}
+        },
+      })
+    end,
   },
 } 
