@@ -51,9 +51,10 @@ return {
   {
     'williamboman/mason-lspconfig.nvim',
     lazy = false,
+    dependencies = { 'williamboman/mason.nvim' },
     config = true,
     opts = {
-      ensure_installed = { 'lua_ls', 'omnisharp' },
+      ensure_installed = { 'lua_ls', 'omnisharp', 'pyright', 'ts_ls'},
       automatic_installation = true,
     },
   },
@@ -83,13 +84,61 @@ return {
         vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, opts)
       end
 
-      local pid = vim.fn.getpid()
-      local omnisharp_bin = vim.fn.stdpath("data") .. "/mason/packages/omnisharp/OmniSharp"
+      -- OmniSharp (C#)
+      local omnisharp_bin = "/home/nick/.local/share/nvim/mason/packages/omnisharp/OmniSharp"
+      local function validate_omnisharp()
+        local cmd = { omnisharp_bin, "--languageserver" }
+        if vim.fn.executable(omnisharp_bin) == 1 then
+          return cmd
+        end
+        return nil
+      end
+
       lspconfig.omnisharp.setup {
-        cmd = { omnisharp_bin, "-z", "--hostPID", tostring(pid) },
+        cmd = validate_omnisharp(),
         capabilities = capabilities,
         on_attach = on_attach,
         root_dir = require('lspconfig.util').root_pattern("*.sln", "*.csproj", ".git"),
+      }
+      -- Python LSP (Pyright)
+      local mason_path = vim.fn.stdpath("data") .. "/mason"
+      local pyright_path = mason_path .. "/packages/pyright/node_modules/pyright/langserver.index.js"
+      lspconfig.pyright.setup {
+        cmd = { "node", pyright_path, "--stdio" },
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = {
+          python = {
+            analysis = {
+              autoSearchPaths = true,
+              diagnosticMode = "workspace",
+              useLibraryCodeForTypes = true
+            }
+          }
+        },
+        root_dir = require('lspconfig.util').root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git"),
+      }
+      -- JavaScript/TypeScript LSP (ts_ls)
+      local tsls_bin = vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server/node_modules/.bin/typescript-language-server"
+      lspconfig.ts_ls.setup {
+        cmd = { tsls_bin, "--stdio" },
+        filetypes = {
+          "javascript",
+          "javascriptreact",
+          "javascript.jsx",
+          "typescript",
+          "typescriptreact",
+          "typescript.tsx",
+        },
+        root_dir = require('lspconfig.util').root_pattern(
+          "tsconfig.json",
+          "jsconfig.json",
+          "package.json",
+          ".git"
+        ),
+        single_file_support = true,
+        capabilities = capabilities,
+        on_attach = on_attach,
       }
     end,
   },
