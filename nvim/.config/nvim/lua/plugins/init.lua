@@ -64,8 +64,8 @@ return {
       automatic_installation = true,
       handlers = {
         function(server_name)
-          -- Skip OmniSharp since we're using roslyn
-          if server_name == "omnisharp" then
+          -- Skip both OmniSharp and C# since we're using roslyn
+          if server_name == "omnisharp" or server_name == "csharp_ls" then
             return
           end
           require("lspconfig")[server_name].setup {}
@@ -80,11 +80,32 @@ return {
     dependencies = {
       "neovim/nvim-lspconfig",
     },
-    ft = "cs",
-    config = function()
+    ft = { "cs" },
+    opts = {
+      -- Use roslyn's file watching instead of neovim's
+      filewatching = "roslyn",
+      -- Search for solutions in parent directories
+      broad_search = true,
+      -- Don't lock the solution target to allow proper reloading
+      lock_target = false,
+      -- Optional function to choose the correct solution
+      choose_target = function(targets)
+        -- If there's only one target, use it
+        if #targets == 1 then
+          return targets[1]
+        end
+        -- Otherwise, prefer .sln files
+        return vim.iter(targets):find(function(item)
+          return vim.endswith(item, ".sln")
+        end)
+      end
+    },
+    config = function(_, opts)
       local roslyn = require("roslyn")
-      roslyn.setup({
-        cmd = { "dotnet", vim.fn.stdpath("data") .. "/mason/packages/roslyn/Microsoft.CodeAnalysis.LanguageServer.dll", "--stdio" },
+      roslyn.setup(opts)
+
+      -- Configure LSP settings after setup
+      vim.lsp.config("roslyn", {
         on_attach = function(client, bufnr)
           -- Enable completion triggered by <c-x><c-o>
           vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
@@ -103,11 +124,55 @@ return {
           vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
           vim.keymap.set('n', '[d', vim.diagnostic.goto_next, opts)
           vim.keymap.set('n', ']d', vim.diagnostic.goto_prev, opts)
+
+          -- Disable semantic tokens
+          client.server_capabilities.semanticTokensProvider = nil
         end,
-        capabilities = require('cmp_nvim_lsp').default_capabilities(),
-        filewatching = "auto",
-        broad_search = true,
-        lock_target = false,
+        settings = {
+          ["csharp|background_analysis"] = {
+            background_analysis_dotnet_analyzer_diagnostics_scope = "none",
+            background_analysis_dotnet_compiler_diagnostics_scope = "none"
+          },
+          ["csharp|completion"] = {
+            dotnet_provide_regex_completions = false,
+            dotnet_show_completion_items_from_unimported_namespaces = true
+          },
+          ["csharp|inlay_hints"] = {
+            csharp_enable_inlay_hints_for_implicit_object_creation = true,
+            csharp_enable_inlay_hints_for_implicit_variable_types = true
+          }
+        },
+        init_options = {
+          AutomaticWorkspaceInit = true,
+          SolutionLoadBehavior = "CurrentSolution",
+          AnalyzerConfigFiles = {},
+          EnableSingleFileSupport = true,
+          EnableProjectDiagnostics = false,
+          EnableAnalyzers = false,
+          EnableSemanticTokens = false,
+          EnableDecompilationSupport = false,
+          EnableImportCompletion = true,
+          EnableAnalyzerSupport = false,
+          DiagnosticMode = "Document",
+          SolutionPattern = "*.sln"
+        }
+      })
+
+      -- Add an autocmd to restart the server when switching projects
+      vim.api.nvim_create_autocmd("BufEnter", {
+        pattern = "*.cs",
+        callback = function(args)
+          local current_buf = args.buf
+          local current_file = vim.api.nvim_buf_get_name(current_buf)
+          
+          -- Only restart if we're switching between different projects
+          if vim.b[current_buf].last_project ~= vim.fn.fnamemodify(current_file, ":p:h") then
+            vim.b[current_buf].last_project = vim.fn.fnamemodify(current_file, ":p:h")
+            vim.schedule(function()
+              vim.cmd("Roslyn restart")
+            end)
+          end
+        end
       })
     end
   },
