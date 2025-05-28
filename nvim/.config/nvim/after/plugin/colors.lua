@@ -1,6 +1,6 @@
 function ColorMyPencils(color)
-	-- switch to a higher-contrast theme
-	color = color or "tokyonight"
+	-- Use VSCode theme by default
+	color = color or "vscode"
 
 	vim.cmd.colorscheme(color)
 

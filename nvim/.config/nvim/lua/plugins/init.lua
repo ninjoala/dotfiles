@@ -1,16 +1,24 @@
 return {
   -- Theme
   {
-    "folke/tokyonight.nvim",
+    'Mofiqul/vscode.nvim',
     lazy = false,
     priority = 1000,
     config = function()
-      require("tokyonight").setup({
-        style = "storm",
+      require('vscode').setup({
+        -- Enable transparent background
         transparent = true,
-        terminal_colors = true,
+        -- Enable italic comments
+        italic_comments = true,
+        -- Disable nvim-tree background color
+        disable_nvimtree_bg = true,
+        -- Override colors (optional)
+        color_overrides = {
+          vscLineNumber = '#FFFFFF',
+        },
       })
-      vim.cmd.colorscheme("tokyonight")
+      -- Load the colorscheme
+      vim.cmd.colorscheme('vscode')
     end,
   },
 
