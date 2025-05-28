@@ -119,9 +119,8 @@ return {
         root_dir = require('lspconfig.util').root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git"),
       }
       -- JavaScript/TypeScript LSP (ts_ls)
-      local tsls_bin = vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server/node_modules/.bin/typescript-language-server"
       lspconfig.ts_ls.setup {
-        cmd = { tsls_bin, "--stdio" },
+        cmd = { vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server", "--stdio" },
         filetypes = {
           "javascript",
           "javascriptreact",
