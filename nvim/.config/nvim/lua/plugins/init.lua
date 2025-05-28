@@ -43,31 +43,73 @@ return {
     end,
   },
   {
-    'williamboman/mason.nvim',
-    lazy = false,
-    config = true,
+    "williamboman/mason.nvim",
+    build = ":MasonUpdate", -- :MasonUpdate updates registry contents
+    opts = {
+      registries = {
+        "github:mason-org/mason-registry",
+        "github:Crashdummyy/mason-registry",
+      },
+    },
   },
 
   {
     'williamboman/mason-lspconfig.nvim',
-    lazy = false,
-    dependencies = { 'williamboman/mason.nvim' },
-    config = true,
+    event = "VeryLazy",
+    dependencies = {
+      "williamboman/mason.nvim",
+    },
     opts = {
-      ensure_installed = { 'lua_ls', 'omnisharp', 'pyright', 'ts_ls'},
+      ensure_installed = { 'lua_ls' },
       automatic_installation = true,
       handlers = {
         function(server_name)
-          -- Skip servers that we configure manually
-          if server_name == "omnisharp" or
-             server_name == "pyright" or
-             server_name == "ts_ls" then
+          -- Skip OmniSharp since we're using roslyn
+          if server_name == "omnisharp" then
             return
           end
           require("lspconfig")[server_name].setup {}
         end,
       },
     },
+  },
+
+  -- Make sure roslyn.nvim is loaded before lspconfig
+  {
+    "seblyng/roslyn.nvim",
+    dependencies = {
+      "neovim/nvim-lspconfig",
+    },
+    ft = "cs",
+    config = function()
+      local roslyn = require("roslyn")
+      roslyn.setup({
+        cmd = { "dotnet", vim.fn.stdpath("data") .. "/mason/packages/roslyn/Microsoft.CodeAnalysis.LanguageServer.dll", "--stdio" },
+        on_attach = function(client, bufnr)
+          -- Enable completion triggered by <c-x><c-o>
+          vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+          local opts = { buffer = bufnr, noremap = true, silent = true }
+          vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+          vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+          vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+          vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+          vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+          vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+          vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+          vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+          vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+          vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, opts)
+          vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
+          vim.keymap.set('n', '[d', vim.diagnostic.goto_next, opts)
+          vim.keymap.set('n', ']d', vim.diagnostic.goto_prev, opts)
+        end,
+        capabilities = require('cmp_nvim_lsp').default_capabilities(),
+        filewatching = "auto",
+        broad_search = true,
+        lock_target = false,
+      })
+    end
   },
 
   {
@@ -81,65 +123,29 @@ return {
     config = function()
       local lspconfig = require('lspconfig')
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
+      
+      -- Disable semantic tokens in capabilities
+      capabilities.textDocument.semanticTokens = nil
+      
       local on_attach = function(client, bufnr)
-        local opts = { buffer = bufnr }
+        -- Enable completion triggered by <c-x><c-o>
+        vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+        local opts = { buffer = bufnr, noremap = true, silent = true }
+        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
         vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
         vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+        vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+        vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+        vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+        vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+        vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+        vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
         vim.keymap.set('n', '<leader>ws', vim.lsp.buf.workspace_symbol, opts)
         vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, opts)
         vim.keymap.set('n', '[d', vim.diagnostic.goto_next, opts)
         vim.keymap.set('n', ']d', vim.diagnostic.goto_prev, opts)
-        vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-        vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, opts)
-        vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-        vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, opts)
       end
-
-      -- OmniSharp (C#)
-      lspconfig.omnisharp.setup {
-        cmd = { vim.fn.stdpath("data") .. "/mason/bin/omnisharp", "--languageserver" },
-        capabilities = capabilities,
-        on_attach = function(client, bufnr)
-          -- Disable semantic tokens
-          client.server_capabilities.semanticTokensProvider = nil
-          on_attach(client, bufnr)
-        end,
-        filetypes = { "cs" },  -- Simplified filetypes
-        root_dir = require('lspconfig.util').root_pattern("*.sln", "*.csproj", ".git"),
-        handlers = {
-          ["textDocument/definition"] = vim.lsp.handlers["textDocument/definition"],
-          ["textDocument/references"] = vim.lsp.handlers["textDocument/references"],
-          ["textDocument/implementation"] = vim.lsp.handlers["textDocument/implementation"]
-        },
-        settings = {
-          FormattingOptions = {
-            EnableEditorConfigSupport = true,
-            OrganizeImports = false,
-          },
-          RoslynExtensionsOptions = {
-            EnableAnalyzersSupport = false,
-            EnableDecompilationSupport = false,
-            EnableImportCompletion = false,
-          },
-          SDK = {
-            IncludePrereleases = true,
-          },
-          enableSemanticHighlighting = false,
-          enableSemanticTokens = false,
-        },
-        -- Enable this to see LSP log messages
-        init_options = {
-          -- Disable analyzers
-          RoslynExtensionsOptions = {
-            enableAnalyzersSupport = false,
-            enableDecompilationSupport = false,
-            enableImportCompletion = false,
-          },
-          -- Disable semantic tokens
-          enableSemanticHighlighting = false,
-          enableSemanticTokens = false,
-        }
-      }
 
       -- Python LSP (Pyright)
       local mason_path = vim.fn.stdpath("data") .. "/mason"
@@ -190,6 +196,8 @@ return {
     event = 'InsertEnter',
     dependencies = {
       {'L3MON4D3/LuaSnip'},
+      "saadparwaiz1/cmp_luasnip",
+      "hrsh7th/cmp-buffer",
     },
     config = function()
       -- Here is where you configure the autocompletion settings.
@@ -201,15 +209,29 @@ return {
       local cmp_action = lsp_zero.cmp_action()
 
       cmp.setup({
+        snippet = {
+          expand = function(args)
+            require('luasnip').lsp_expand(args.body)
+          end,
+        },
         formatting = lsp_zero.cmp_format(),
         mapping = cmp.mapping.preset.insert({
           ['<C-Space>'] = cmp.mapping.complete(),
           ['<C-u>'] = cmp.mapping.scroll_docs(-4),
           ['<C-d>'] = cmp.mapping.scroll_docs(4),
+          ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+          ['<C-f>'] = cmp.mapping.scroll_docs(4),
+          ['<C-e>'] = cmp.mapping.abort(),
           ['<CR>'] = cmp.mapping.confirm({ select = true }),
           ['<Tab>'] = cmp.mapping.confirm({ select = true }),
           ['<C-f>'] = cmp_action.luasnip_jump_forward(),
           ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+        }),
+        sources = cmp.config.sources({
+          { name = 'nvim_lsp' },
+          { name = 'luasnip' },
+        }, {
+          { name = 'buffer' },
         })
       })
     end
@@ -218,7 +240,17 @@ return {
   -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
-    build = ":TSUpdate",
+    opts = {
+      ensure_installed = {
+        "vim",
+        "lua",
+        "vimdoc",
+        "html",
+        "css",
+        "c_sharp",
+        "bicep"
+      },
+    },
   },
 
   -- Telescope (fuzzy finder)
@@ -267,6 +299,10 @@ return {
   -- Git integration
   {
     "lewis6991/gitsigns.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+    config = true,
   },
 
   -- Status line

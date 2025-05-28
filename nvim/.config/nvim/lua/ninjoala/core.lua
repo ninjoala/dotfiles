@@ -12,6 +12,14 @@ vim.g.maplocalleader = " "
 -- Load plugins
 require("lazy").setup("plugins")
 
+-- Setup Mason packages after plugins are loaded
+vim.api.nvim_create_autocmd("User", {
+  pattern = "LazyDone",
+  callback = function()
+    require("ninjoala.mason").setup()
+  end,
+})
+
 -- Core Neovim settings
 local opt = vim.opt
 
