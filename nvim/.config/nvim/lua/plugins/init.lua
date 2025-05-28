@@ -83,7 +83,10 @@ return {
         vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, opts)
       end
 
+      local pid = vim.fn.getpid()
+      local omnisharp_bin = vim.fn.stdpath("data") .. "/mason/packages/omnisharp/OmniSharp"
       lspconfig.omnisharp.setup {
+        cmd = { omnisharp_bin, "-z", "--hostPID", tostring(pid) },
         capabilities = capabilities,
         on_attach = on_attach,
         root_dir = require('lspconfig.util').root_pattern("*.sln", "*.csproj", ".git"),
