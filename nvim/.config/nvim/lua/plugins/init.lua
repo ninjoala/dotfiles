@@ -56,6 +56,17 @@ return {
     opts = {
       ensure_installed = { 'lua_ls', 'omnisharp', 'pyright', 'ts_ls'},
       automatic_installation = true,
+      handlers = {
+        function(server_name)
+          -- Skip servers that we configure manually
+          if server_name == "omnisharp" or
+             server_name == "pyright" or
+             server_name == "ts_ls" then
+            return
+          end
+          require("lspconfig")[server_name].setup {}
+        end,
+      },
     },
   },
 
@@ -85,21 +96,51 @@ return {
       end
 
       -- OmniSharp (C#)
-      local omnisharp_bin = "/home/nick/.local/share/nvim/mason/packages/omnisharp/OmniSharp"
-      local function validate_omnisharp()
-        local cmd = { omnisharp_bin, "--languageserver" }
-        if vim.fn.executable(omnisharp_bin) == 1 then
-          return cmd
-        end
-        return nil
-      end
-
       lspconfig.omnisharp.setup {
-        cmd = validate_omnisharp(),
+        cmd = { vim.fn.stdpath("data") .. "/mason/bin/omnisharp", "--languageserver" },
         capabilities = capabilities,
-        on_attach = on_attach,
+        on_attach = function(client, bufnr)
+          -- Disable semantic tokens
+          client.server_capabilities.semanticTokensProvider = nil
+          on_attach(client, bufnr)
+        end,
+        filetypes = { "cs" },  -- Simplified filetypes
         root_dir = require('lspconfig.util').root_pattern("*.sln", "*.csproj", ".git"),
+        handlers = {
+          ["textDocument/definition"] = vim.lsp.handlers["textDocument/definition"],
+          ["textDocument/references"] = vim.lsp.handlers["textDocument/references"],
+          ["textDocument/implementation"] = vim.lsp.handlers["textDocument/implementation"]
+        },
+        settings = {
+          FormattingOptions = {
+            EnableEditorConfigSupport = true,
+            OrganizeImports = false,
+          },
+          RoslynExtensionsOptions = {
+            EnableAnalyzersSupport = false,
+            EnableDecompilationSupport = false,
+            EnableImportCompletion = false,
+          },
+          SDK = {
+            IncludePrereleases = true,
+          },
+          enableSemanticHighlighting = false,
+          enableSemanticTokens = false,
+        },
+        -- Enable this to see LSP log messages
+        init_options = {
+          -- Disable analyzers
+          RoslynExtensionsOptions = {
+            enableAnalyzersSupport = false,
+            enableDecompilationSupport = false,
+            enableImportCompletion = false,
+          },
+          -- Disable semantic tokens
+          enableSemanticHighlighting = false,
+          enableSemanticTokens = false,
+        }
       }
+
       -- Python LSP (Pyright)
       local mason_path = vim.fn.stdpath("data") .. "/mason"
       local pyright_path = mason_path .. "/packages/pyright/node_modules/pyright/langserver.index.js"
@@ -118,6 +159,7 @@ return {
         },
         root_dir = require('lspconfig.util').root_pattern("pyproject.toml", "setup.py", "requirements.txt", ".git"),
       }
+
       -- JavaScript/TypeScript LSP (ts_ls)
       lspconfig.ts_ls.setup {
         cmd = { vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server", "--stdio" },
