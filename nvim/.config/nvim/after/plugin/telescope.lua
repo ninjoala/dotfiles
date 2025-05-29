@@ -4,6 +4,7 @@ local builtin = require('telescope.builtin')
 -- Basic setup
 telescope.setup({
     defaults = {
+        -- File finding settings
         find_command = {
             "rg",
             "--files",
@@ -15,8 +16,52 @@ telescope.setup({
             "^.git/",
             "^node_modules/",
         },
+        
+        -- Layout configuration (NvChad/Lazy.nvim style)
+        layout_strategy = 'horizontal',
+        layout_config = {
+            horizontal = {
+                height = 0.99,
+                preview_cutoff = 120,
+                prompt_position = "top",
+                width = 0.99,
+                preview_width = 0.6,
+            },
+        },
+
+        -- Appearance
+        prompt_prefix = "   ",
+        selection_caret = "  ",
+        entry_prefix = "  ",
+        initial_mode = "insert",
+        selection_strategy = "reset",
+        sorting_strategy = "ascending",
+        scroll_strategy = "cycle",
+        
+        -- Better looking results
+        results_title = false,
+        borderchars = {
+            prompt = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" },
+            results = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" },
+            preview = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" },
+        },
+    },
+    pickers = {
+        find_files = {
+            previewer = true,
+            hidden = true,
+        },
+        live_grep = {
+            previewer = true,
+        },
+        buffers = {
+            previewer = true,
+        },
     },
 })
+
+-- Load fzf extension if available
+pcall(telescope.load_extension, "fzf")
 
 -- Debug function to ensure it works
 local function debug_find_files()
