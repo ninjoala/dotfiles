@@ -99,13 +99,6 @@ return {
         },
       })
 
-      -- Diagnostic signs
-      local signs = { Error = "󰅚 ", Warn = "󰀪 ", Hint = "󰌶 ", Info = " " }
-      for type, icon in pairs(signs) do
-        local hl = "DiagnosticSign" .. type
-        vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-      end
-
       -- Set LSP log level
       vim.lsp.set_log_level("WARN")
 
@@ -386,6 +379,17 @@ return {
       local telescope = require("telescope")
       telescope.setup({
         defaults = {
+          vimgrep_arguments = {
+            "rg",
+            "--color=never",
+            "--no-heading",
+            "--with-filename",
+            "--line-number",
+            "--column",
+            "--smart-case",
+            "--hidden",
+            "--no-ignore",
+          },
           file_ignore_patterns = { "node_modules", ".git/", "*.pyc" },
           path_display = { "truncate" },
           layout_config = {
@@ -426,7 +430,6 @@ return {
     config = function()
       require('lualine').setup({
         options = {
-          theme = 'tokyonight',
           component_separators = '|',
           section_separators = '',
         },
