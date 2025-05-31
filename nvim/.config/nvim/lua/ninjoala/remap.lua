@@ -5,14 +5,6 @@ vim.g.maplocalleader = " "
 -- Ensure clipboard settings are correct
 vim.opt.clipboard = "unnamedplus"  -- Use system clipboard by default
 
--- Project Search (leader + ps) - Search in all files
-vim.keymap.set("n", "<leader>ps", function()
-    require('telescope.builtin').live_grep({
-        cwd = vim.loop.cwd(),
-        hidden = true
-    })
-end, { desc = "Project Search (grep)" })
-
 -- Quick File Search (leader + pf) - Find files
 vim.keymap.set("n", "<leader>pf", function()
     require('telescope.builtin').find_files({
@@ -68,11 +60,6 @@ vim.keymap.set("n", "<leader>pv", function()
     -- Open netrw in the current window
     vim.cmd('Ex')
 end, { noremap = true, silent = true })
-
--- Basic keymaps that don't depend on plugins
-map("n", "<leader>ps", function()
-    require('telescope.builtin').live_grep({ cwd = vim.fn.stdpath("config") })
-end, opts)
 
 -- Clipboard keymaps for tmux integration
 -- Yank to system clipboard
