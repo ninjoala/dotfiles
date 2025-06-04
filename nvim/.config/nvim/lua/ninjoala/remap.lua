@@ -5,6 +5,14 @@ vim.g.maplocalleader = " "
 -- Ensure clipboard settings are correct
 vim.opt.clipboard = "unnamedplus"  -- Use system clipboard by default
 
+-- Quick save and quit mappings
+-- 'e' for 'edit/etched' (saving etches your edits to disk)
+-- 'r' for 'return' (quit returns you to the terminal)
+vim.keymap.set("n", "<leader>e", ":w<CR>", { desc = "Save file (etch changes)" })
+vim.keymap.set("n", "<leader>r", ":q<CR>", { desc = "Quit (return to terminal)" })
+vim.keymap.set("n", "<leader>R", ":q!<CR>", { desc = "Force quit (return immediately)" })
+vim.keymap.set("n", "<leader>E", ":wq<CR>", { desc = "Save and quit (etch and return)" })
+
 -- Quick File Search (leader + pf) - Find files
 vim.keymap.set("n", "<leader>pf", function()
     require('telescope.builtin').find_files({
