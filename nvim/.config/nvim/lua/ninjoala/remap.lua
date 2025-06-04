@@ -13,6 +13,9 @@ vim.keymap.set("n", "<leader>r", ":q<CR>", { desc = "Quit (return to terminal)" 
 vim.keymap.set("n", "<leader>R", ":q!<CR>", { desc = "Force quit (return immediately)" })
 vim.keymap.set("n", "<leader>E", ":wq<CR>", { desc = "Save and quit (etch and return)" })
 
+-- Reload config
+vim.keymap.set("n", "<leader>so", ":source $MYVIMRC<CR>", { desc = "Source (reload) config" })
+
 -- Quick File Search (leader + pf) - Find files
 vim.keymap.set("n", "<leader>pf", function()
     require('telescope.builtin').find_files({
@@ -101,10 +104,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
     local opts = { buffer = bufnr, noremap = true, silent = true }
     
     -- LSP navigation with Telescope
-    vim.keymap.set('n', 'gd', require('telescope.builtin').lsp_definitions, opts)
-    vim.keymap.set('n', 'gD', require('telescope.builtin').lsp_type_definitions, opts)
-    vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_implementations, opts)
-    vim.keymap.set('n', 'gr', require('telescope.builtin').lsp_references, opts)
+    vim.keymap.set('n', '<leader>fd', require('telescope.builtin').lsp_definitions, opts)
+    vim.keymap.set('n', '<leader>fD', require('telescope.builtin').lsp_type_definitions, opts)
+    vim.keymap.set('n', '<leader>fi', require('telescope.builtin').lsp_implementations, opts)
+    vim.keymap.set('n', '<leader>fr', require('telescope.builtin').lsp_references, opts)
     vim.keymap.set('n', '<leader>ws', require('telescope.builtin').lsp_workspace_symbols, opts)
     vim.keymap.set('n', '<leader>ds', require('telescope.builtin').lsp_document_symbols, opts)
     
