@@ -405,6 +405,7 @@ return {
         pickers = {
           find_files = { theme = "dropdown" },
           live_grep = { theme = "dropdown" },
+          git_status = { theme = "dropdown" },
         }
       })
       pcall(telescope.load_extension, "fzf")
@@ -416,6 +417,9 @@ return {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
     config = function()
+      -- Add checktime keybinding
+      vim.keymap.set('n', '<leader>ct', '<cmd>checktime<CR>', { desc = 'Check for file changes' })
+
       require('gitsigns').setup({
         signs = {
           add = { text = '│' },
@@ -425,6 +429,33 @@ return {
           changedelete = { text = '~' },
           untracked = { text = '┆' },
         },
+        on_attach = function(bufnr)
+          local gs = package.loaded.gitsigns
+
+          -- Navigation
+          vim.keymap.set('n', ']c', function()
+            if vim.wo.diff then return ']c' end
+            vim.schedule(function() gs.next_hunk() end)
+            return '<Ignore>'
+          end, {expr=true, buffer=bufnr})
+
+          vim.keymap.set('n', '[c', function()
+            if vim.wo.diff then return '[c' end
+            vim.schedule(function() gs.prev_hunk() end)
+            return '<Ignore>'
+          end, {expr=true, buffer=bufnr})
+
+          -- View hunks
+          vim.keymap.set('n', '<leader>gl', function()
+            gs.setqflist('all')
+            vim.defer_fn(function()
+              vim.cmd('cclose') -- Close the quickfix window if it's open
+              require('telescope.builtin').quickfix({ 
+                theme = "dropdown",
+              })
+            end, 100)
+          end, {buffer = bufnr, desc = 'List git hunks'})
+        end
       })
     end,
   },
