@@ -33,38 +33,44 @@ return {
   {
     "williamboman/mason.nvim",
     build = ":MasonUpdate",
-    config = function()
-      require("mason").setup({
-        ui = {
-          icons = {
-            package_installed = "✓",
-            package_pending = "➜",
-            package_uninstalled = "✗"
-          }
-        }
-      })
-    end,
+    lazy = false,
+    priority = 900,  -- Load right after theme but before other plugins
+    opts = {
+      ui = {
+        icons = {
+          package_installed = "✓",
+          package_pending = "➜",
+          package_uninstalled = "✗"
+        },
+        border = "rounded",
+        width = 0.8,
+        height = 0.8
+      },
+      max_concurrent_installers = 4,
+    },
   },
 
   -- Mason-LSPConfig bridge
   {
     'williamboman/mason-lspconfig.nvim',
     event = { "BufReadPre", "BufNewFile" },
-    dependencies = { "williamboman/mason.nvim" },
-    config = function()
-      require("mason-lspconfig").setup({
-        ensure_installed = { 
-          'lua_ls',
-          'omnisharp', 
-          'pyright', 
-          'ts_ls',
-          'html',
-          'cssls',
-          'jsonls'
-        },
-        automatic_installation = true,
-      })
-    end,
+    dependencies = { 
+      "williamboman/mason.nvim",
+      "neovim/nvim-lspconfig",
+    },
+    opts = {
+      ensure_installed = { 
+        'lua_ls',
+        'omnisharp', 
+        'pyright', 
+        'ts_ls',
+        'html',
+        'cssls',
+        'jsonls'
+      },
+      automatic_installation = true,
+      handlers = nil,
+    },
   },
 
   -- LSP Configuration
@@ -443,5 +449,33 @@ return {
         },
       })
     end,
+  },
+
+  -- Portal.nvim for enhanced jump navigation
+  {
+    "cbochs/portal.nvim",
+    dependencies = {
+      "ThePrimeagen/harpoon", -- Optional: for harpoon list support
+    },
+    config = function()
+      require("portal").setup({
+        -- Default settings
+        labels = { "j", "k", "h", "l" }, -- Portal labels for jumping
+        window = {
+          border = "rounded",     -- Border style
+          position = "bottom",    -- Position of the window
+          width = 0.4,           -- Width of the window (percentage or integer)
+          height = 0.4,          -- Height of the window (percentage or integer)
+        },
+      })
+
+      -- Keybindings
+      local keymap = vim.keymap.set
+      local opts = { noremap = true, silent = true }
+      
+      -- Portal navigation
+      keymap("n", "<C-o>", "<cmd>Portal jumplist backward<CR>", { desc = "Portal Backward" })
+      keymap("n", "<C-i>", "<cmd>Portal jumplist forward<CR>", { desc = "Portal Forward" })
+    end
   },
 } 
