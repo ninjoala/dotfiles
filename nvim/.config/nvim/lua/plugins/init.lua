@@ -401,11 +401,41 @@ return {
           layout_config = {
             horizontal = { preview_width = 0.6 },
           },
+          set_env = {
+            ["COLORTERM"] = "truecolor",
+          },
         },
         pickers = {
           find_files = { theme = "dropdown" },
           live_grep = { theme = "dropdown" },
-          git_status = { theme = "dropdown" },
+          git_status = {
+            previewer = require('telescope.previewers').new_termopen_previewer({
+              get_command = function(entry)
+                if entry.status == '??' or entry.status == 'A ' then
+                  return { 'cat', entry.path }
+                end
+                return {
+                  'git',
+                  '-c', 'color.diff=always',
+                  '-c', 'color.ui=always',
+                  '-c', 'color.status=always',
+                  'diff',
+                  '--no-color-moved',
+                  '--color=always',
+                  entry.path
+                }
+              end
+            }),
+            git_icons = {
+              added = "+",
+              changed = "~",
+              copied = ">",
+              deleted = "-",
+              renamed = "➜",
+              unmerged = "‡",
+              untracked = "?",
+            },
+          },
         }
       })
       pcall(telescope.load_extension, "fzf")
@@ -446,7 +476,7 @@ return {
           end, {expr=true, buffer=bufnr})
 
           -- View hunks
-          vim.keymap.set('n', '<leader>gl', function()
+          vim.keymap.set('n', '<leader>gL', function()
             gs.setqflist('all')
             vim.defer_fn(function()
               vim.cmd('cclose') -- Close the quickfix window if it's open
@@ -455,6 +485,9 @@ return {
               })
             end, 100)
           end, {buffer = bufnr, desc = 'List git hunks'})
+
+          -- Preview hunk inline
+          vim.keymap.set('n', '<leader>hl', gs.preview_hunk, {buffer = bufnr, desc = 'Preview git hunk'})
         end
       })
     end,
@@ -508,5 +541,83 @@ return {
       keymap("n", "<C-o>", "<cmd>Portal jumplist backward<CR>", { desc = "Portal Backward" })
       keymap("n", "<C-i>", "<cmd>Portal jumplist forward<CR>", { desc = "Portal Forward" })
     end
+  },
+
+  -- Fugitive for Git commands
+  {
+    "tpope/vim-fugitive",
+    event = "VeryLazy",
+    config = function()
+      -- Add keymaps that integrate with telescope where possible
+      vim.keymap.set("n", "<leader>gs", function()
+        require('telescope.builtin').git_status()
+      end, { desc = "Git status (Telescope)" })
+
+      vim.keymap.set("n", "<leader>gc", function()
+        -- Use telescope git_commits for commit history
+        require('telescope.builtin').git_commits({
+          theme = "dropdown",
+          previewer = true,
+          layout_config = {
+            height = 0.8,
+            width = 0.9,
+            horizontal = {
+              preview_width = 0.6,
+            }
+          },
+        })
+      end, { desc = "Git commits (Telescope)" })
+
+      vim.keymap.set("n", "<leader>gb", function()
+        -- Use telescope git_bcommits for current buffer commit history
+        require('telescope.builtin').git_bcommits({
+          theme = "dropdown",
+          previewer = true,
+          layout_config = {
+            height = 0.8,
+            width = 0.9,
+            horizontal = {
+              preview_width = 0.6,
+            }
+          },
+        })
+      end, { desc = "Git blame (Telescope)" })
+
+      -- Regular fugitive commands for operations that can't use telescope
+      vim.keymap.set("n", "<leader>gp", "<cmd>Git push<CR>", { desc = "Git push" })
+      vim.keymap.set("n", "<leader>gl", "<cmd>Git pull<CR>", { desc = "Git pull" })
+      vim.keymap.set("n", "<leader>gC", "<cmd>Git commit<CR>", { desc = "Open commit window" })
+      
+      -- Additional telescope git commands
+      vim.keymap.set("n", "<leader>gB", function()
+        -- Use telescope git_branches
+        require('telescope.builtin').git_branches({
+          theme = "dropdown",
+          previewer = true,
+          layout_config = {
+            height = 0.8,
+            width = 0.9,
+            horizontal = {
+              preview_width = 0.6,
+            }
+          },
+        })
+      end, { desc = "Git branches (Telescope)" })
+
+      vim.keymap.set("n", "<leader>gS", function()
+        -- Use telescope git_stash
+        require('telescope.builtin').git_stash({
+          theme = "dropdown",
+          previewer = true,
+          layout_config = {
+            height = 0.8,
+            width = 0.9,
+            horizontal = {
+              preview_width = 0.6,
+            }
+          },
+        })
+      end, { desc = "Git stash (Telescope)" })
+    end,
   },
 } 
