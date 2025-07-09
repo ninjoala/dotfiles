@@ -40,4 +40,4 @@ export PYENV_ROOT="$HOME/.pyenv"
 eval "$(pyenv init - bash)"
 source /usr/share/bash-completion/completions/git
 # Useful alias for .bashrc/.zshrc
-alias fcd='cd "$(find . -type d | fzf)"'
+alias fcd='cd "$(find ~/ -type d | fzf)"'
