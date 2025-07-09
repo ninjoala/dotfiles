@@ -15,3 +15,19 @@ export PATH="$HOME/.dotnet/tools:$PATH"
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init bash)"
 fi
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/keyring/ssh"
+export GNOME_KEYRING_CONTROL="$XDG_RUNTIME_DIR/keyring"
+
+function cursor() {
+    # Check if cursor binary actually exists, optional but good practice
+    if ! command -v /usr/bin/cursor &> /dev/null
+    then
+        echo "Error: 'cursor' command not found."
+        return 1
+    fi
+
+    # Execute the actual cursor command with all arguments in the background
+    /usr/bin/cursor "$@" &
+} 
+
+alias claude="/home/nick/.claude/local/claude"

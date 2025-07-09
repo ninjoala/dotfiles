@@ -58,3 +58,4 @@ background-opacity = 0.9
 background-blur-radius = 10
 
 font-size = 18 
+keybind = shift+enter=text:\n
