@@ -55,4 +55,5 @@ fi
 # Useful alias for .bashrc/.zshrc
 if command -v fzf >/dev/null 2>&1; then
   alias fcd='cd "$(find ~/ -type d | fzf)"'
+  alias h="history | sed 's/^[ ]*[0-9]*[ ]*//' | fzf --tac --no-sort | xargs -r -I {} bash -c '{}'"
 fi
