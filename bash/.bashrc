@@ -57,3 +57,19 @@ if command -v fzf >/dev/null 2>&1; then
   alias fcd='cd "$(find ~/ -type d | fzf)"'
   alias h="history | sed 's/^[ ]*[0-9]*[ ]*//' | fzf --tac --no-sort | xargs -r -I {} bash -c '{}'"
 fi
+
+# Start clipman if available
+if command -v clipman >/dev/null 2>&1 && command -v wl-paste >/dev/null 2>&1; then
+  wl-paste -p --watch clipman store --no-persist &
+fi
+
+# Check for git local config and show setup instructions if missing
+check_git_local_config() {
+  if [ ! -f "$HOME/.gitconfig.local" ]; then
+    echo "⚠️  Git local config missing. Run these commands to set up:"
+    echo "git config --file ~/.gitconfig.local user.name \"Your Name\""
+    echo "git config --file ~/.gitconfig.local user.email \"your.email@domain.com\""
+    echo ""
+  fi
+}
+check_git_local_config
