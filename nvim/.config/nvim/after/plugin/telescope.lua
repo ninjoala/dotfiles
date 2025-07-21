@@ -4,18 +4,7 @@ local builtin = require('telescope.builtin')
 -- Basic setup
 telescope.setup({
     defaults = {
-        -- File finding settings
-        find_command = {
-            "rg",
-            "--files",
-            "--hidden",
-            "--glob=!.git/*"
-        },
         path_display = { "truncate" },
-        file_ignore_patterns = {
-            "^.git/",
-            "^node_modules/",
-        },
         
         -- Layout configuration (NvChad/Lazy.nvim style)
         layout_strategy = 'horizontal',
@@ -81,6 +70,5 @@ end
 
 -- Keymaps
 vim.keymap.set('n', '<leader>pf', debug_find_files, {})
-vim.keymap.set('n', '<leader>ps', builtin.live_grep, {})
 vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
 vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})

@@ -29,6 +29,21 @@ vim.keymap.set("n", "<leader>gf", function()
     require('telescope.builtin').git_files()
 end, { desc = "Git Files" })
 
+-- Project Search (leader + ps) - Live grep respecting .gitignore
+vim.keymap.set("n", "<leader>ps", function()
+    require('telescope.builtin').live_grep({
+        vimgrep_arguments = {
+            "rg",
+            "--color=never",
+            "--no-heading",
+            "--with-filename",
+            "--line-number",
+            "--column",
+            "--smart-case",
+        },
+    })
+end, { desc = "Project Search (live grep)" })
+
 -- Window management
 vim.keymap.set("n", "<leader>sv", vim.cmd.vsplit, { desc = "Split Vertically" })
 vim.keymap.set("n", "<leader>sh", vim.cmd.split, { desc = "Split Horizontally" })
