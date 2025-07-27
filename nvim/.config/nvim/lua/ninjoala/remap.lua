@@ -64,13 +64,10 @@ vim.keymap.set("n", "<leader>gr", ":Gitsigns reset_hunk<CR>", { desc = "Reset Gi
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
--- Netrw with better buffer handling
+-- Oil file explorer
 vim.keymap.set("n", "<leader>pv", function()
-    -- Clear jumplist before opening netrw
-    vim.cmd('clearjumps')
-    -- Open netrw in the current window
-    vim.cmd('Ex')
-end, { noremap = true, silent = true })
+    require("oil").open()
+end, { noremap = true, silent = true, desc = "Open file explorer" })
 
 -- Clipboard keymaps for tmux integration
 -- Yank to system clipboard
@@ -118,6 +115,12 @@ vim.api.nvim_create_autocmd('LspAttach', {
     local bufnr = args.buf
     local opts = { buffer = bufnr, noremap = true, silent = true }
     
+    -- Prevent duplicate keybindings if already set for this buffer
+    if vim.b[bufnr].lsp_keymaps_set then
+      return
+    end
+    vim.b[bufnr].lsp_keymaps_set = true
+    
     -- LSP navigation with Telescope
     vim.keymap.set('n', '<leader>fd', require('telescope.builtin').lsp_definitions, opts)
     vim.keymap.set('n', '<leader>fD', require('telescope.builtin').lsp_type_definitions, opts)
@@ -130,6 +133,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
     vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
     vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+    vim.keymap.set('n', '<leader>f', function() require("conform").format({ lsp_fallback = true }) end, opts)
+    vim.keymap.set('v', '<leader>f', function() require("conform").format({ lsp_fallback = true }) end, opts)
     vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, opts)
     
     -- Diagnostics with Telescope

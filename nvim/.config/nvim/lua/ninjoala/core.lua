@@ -150,7 +150,7 @@ vim.api.nvim_create_autocmd("User", {
 })
 
 -- Netrw settings
-vim.g.netrw_keepj = 1
+vim.g.netrw_keepj = ""
 vim.g.netrw_fastbrowse = 0
 
 -- Core Neovim settings

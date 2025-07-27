@@ -109,7 +109,7 @@ return {
       vim.lsp.set_log_level("WARN")
 
       -- Default LSP servers (simple setup)
-      local simple_servers = { 'lua_ls', 'pyright', 'ts_ls', 'html', 'cssls', 'jsonls' }
+      local simple_servers = { 'lua_ls', 'pyright', 'html', 'cssls', 'jsonls' }
       for _, server in ipairs(simple_servers) do
         lspconfig[server].setup({
           capabilities = capabilities,
@@ -353,6 +353,9 @@ return {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     event = { "BufReadPost", "BufNewFile" },
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter-textobjects",
+    },
     config = function()
       require('nvim-treesitter.configs').setup({
         ensure_installed = {
@@ -367,6 +370,20 @@ return {
           additional_vim_regex_highlighting = false,
         },
         indent = { enable = true },
+        textobjects = {
+          select = {
+            enable = true,
+            lookahead = true,
+            keymaps = {
+              ["af"] = "@function.outer",
+              ["if"] = "@function.inner",
+              ["ac"] = "@class.outer",
+              ["ic"] = "@class.inner",
+              ["aa"] = "@parameter.outer",
+              ["ia"] = "@parameter.inner",
+            },
+          },
+        },
       })
     end,
   },
@@ -515,32 +532,67 @@ return {
     end,
   },
 
-  -- Portal.nvim for enhanced jump navigation
+
+  -- File explorer
   {
-    "cbochs/portal.nvim",
-    dependencies = {
-      "ThePrimeagen/harpoon", -- Optional: for harpoon list support
-    },
+    "stevearc/oil.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
-      require("portal").setup({
-        -- Default settings
-        labels = { "j", "k", "h", "l" }, -- Portal labels for jumping
-        window = {
-          border = "rounded",     -- Border style
-          position = "bottom",    -- Position of the window
-          width = 0.4,           -- Width of the window (percentage or integer)
-          height = 0.4,          -- Height of the window (percentage or integer)
+      require("oil").setup({
+        columns = { "icon", "permissions", "size", "mtime" },
+        keymaps = {
+          ["g?"] = "actions.show_help",
+          ["<CR>"] = "actions.select",
+          ["<C-s>"] = "actions.select_vsplit",
+          ["<C-h>"] = "actions.select_split",
+          ["<C-t>"] = "actions.select_tab",
+          ["<C-p>"] = "actions.preview",
+          ["<C-c>"] = "actions.close",
+          ["<C-l>"] = "actions.refresh",
+          ["-"] = "actions.parent",
+          ["_"] = "actions.open_cwd",
+          ["`"] = "actions.cd",
+          ["~"] = "actions.tcd",
+          ["gs"] = "actions.change_sort",
+          ["gx"] = "actions.open_external",
+          ["g."] = "actions.toggle_hidden",
+          ["g\\"] = "actions.toggle_trash",
+        },
+        use_default_keymaps = true,
+        view_options = {
+          show_hidden = false,
+          is_hidden_file = function(name, bufnr)
+            return vim.startswith(name, ".")
+          end,
+          is_always_hidden = function(name, bufnr)
+            return false
+          end,
         },
       })
+    end,
+  },
 
-      -- Keybindings
-      local keymap = vim.keymap.set
-      local opts = { noremap = true, silent = true }
-      
-      -- Portal navigation
-      keymap("n", "<C-o>", "<cmd>Portal jumplist backward<CR>", { desc = "Portal Backward" })
-      keymap("n", "<C-i>", "<cmd>Portal jumplist forward<CR>", { desc = "Portal Forward" })
-    end
+  -- Code formatter
+  {
+    "stevearc/conform.nvim",
+    event = { "BufWritePre" },
+    config = function()
+      require("conform").setup({
+        formatters_by_ft = {
+          lua = { "stylua" },
+          python = { "black" },
+          javascript = { "prettier" },
+          typescript = { "prettier" },
+          html = { "prettier" },
+          css = { "prettier" },
+          json = { "prettier" },
+        },
+        format_on_save = {
+          timeout_ms = 500,
+          lsp_fallback = true,
+        },
+      })
+    end,
   },
 
   -- Fugitive for Git commands
