@@ -1,7 +1,14 @@
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({'git','clone','--filter=blob:none','https://github.com/folke/lazy.nvim.git','--branch=stable',lazypath})
+	vim.fn.system({
+		"git",
+		"clone",
+		"--filter=blob:none",
+		"https://github.com/folke/lazy.nvim.git",
+		"--branch=stable",
+		lazypath,
+	})
 end
 vim.opt.rtp:prepend(lazypath)
 
@@ -14,12 +21,11 @@ require("lazy").setup("plugins")
 
 -- Setup Mason packages after plugins are loaded (simplified)
 vim.api.nvim_create_autocmd("User", {
-  pattern = "LazyDone",
-  callback = function()
-    -- Setup formatters and tools via mason.lua
-    require("ninjoala.mason").setup()
-    
-  end,
+	pattern = "LazyDone",
+	callback = function()
+		-- Setup formatters and tools via mason.lua
+		require("ninjoala.mason").setup()
+	end,
 })
 
 -- Netrw settings
@@ -46,7 +52,6 @@ opt.wrap = false
 -- Search settings
 opt.ignorecase = true
 opt.smartcase = true
-opt.hlsearch = true
 opt.incsearch = true
 
 -- Cursor line
@@ -74,9 +79,13 @@ opt.iskeyword:append("-")
 opt.swapfile = false
 
 -- Faster key response times
-opt.timeoutlen = 300  -- Time to wait for mapped sequence (default 1000ms)
-opt.ttimeoutlen = 10  -- Time to wait for key codes like Escape (default 100ms)
+opt.timeoutlen = 300 -- Time to wait for mapped sequence (default 1000ms)
+opt.ttimeoutlen = 10 -- Time to wait for key codes like Escape (default 100ms)
+
+-- Keep cursor centered
+opt.scrolloff = 8 -- Keep 8 lines above/below cursor
 
 -- Fast escape alternative
-vim.keymap.set('i', 'jk', '<Esc>', { noremap = true, silent = true })
-vim.keymap.set('v', 'jk', '<Esc>', { noremap = true, silent = true }) 
+vim.keymap.set("i", "jk", "<Esc>", { noremap = true, silent = true })
+vim.keymap.set("v", "jk", "<Esc>", { noremap = true, silent = true })
+

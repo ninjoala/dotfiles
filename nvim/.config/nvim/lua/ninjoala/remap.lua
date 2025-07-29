@@ -83,6 +83,9 @@ map("v", "<leader>P", '"+P', opts)
 map("n", "dd", '"_dd', opts)
 map("v", "d", '"_d', opts)
 
+-- Clear search highlighting
+vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { noremap = true, silent = true, desc = "Clear search highlighting" })
+
 -- Load plugin-specific keymaps after plugins are initialized
 vim.api.nvim_create_autocmd("User", {
     pattern = "LazyLoad",
