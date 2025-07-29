@@ -456,6 +456,40 @@ return {
 		"wellle/targets.vim",
 	},
 
+	-- Which-key for manual keymap display
+	{
+		"folke/which-key.nvim",
+		event = "VeryLazy",
+		config = function()
+			local wk = require("which-key")
+			wk.setup({
+				-- Disable automatic triggers
+				triggers = {
+					{ "<auto>", mode = "nixsotc" }, -- Don't auto-trigger on space
+				},
+				-- Only show when manually triggered
+				delay = 999999, -- Very long delay to effectively disable auto-show
+			})
+			
+			-- Register key groups for better organization (new format)
+			wk.add({
+				{ "<leader>f", group = "find/lsp" },
+				{ "<leader>g", group = "git" },
+				{ "<leader>p", group = "project" },
+				{ "<leader>s", group = "split" },
+				{ "<leader>d", group = "diagnostics" },
+				{ "<leader>w", group = "workspace" },
+				{ "<leader>c", group = "code" },
+				{ "<leader>h", group = "hunk/window" },
+			})
+			
+			-- Manual trigger keymap
+			vim.keymap.set("n", "<leader>?", function()
+				wk.show()
+			end, { desc = "Show keybindings" })
+		end,
+	},
+
 	-- Fugitive for Git commands
 	{
 		"tpope/vim-fugitive",
