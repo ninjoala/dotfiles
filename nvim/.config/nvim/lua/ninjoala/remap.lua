@@ -125,7 +125,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', '<leader>fd', require('telescope.builtin').lsp_definitions, opts)
     vim.keymap.set('n', '<leader>fD', require('telescope.builtin').lsp_type_definitions, opts)
     vim.keymap.set('n', '<leader>fi', require('telescope.builtin').lsp_implementations, opts)
-    vim.keymap.set('n', '<leader>fr', require('telescope.builtin').lsp_references, opts)
+    vim.keymap.set("n", "<leader>fr", "<cmd>Telescope lsp_references<cr>", { buffer = bufnr, desc = "Telescope LSP References" })
     vim.keymap.set('n', '<leader>ws', require('telescope.builtin').lsp_workspace_symbols, opts)
     vim.keymap.set('n', '<leader>ds', require('telescope.builtin').lsp_document_symbols, opts)
     
