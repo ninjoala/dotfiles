@@ -33,11 +33,6 @@ function cursor() {
     /usr/bin/cursor "$@" &
 } 
 
-# Claude alias if binary exists
-if [ -f "/home/nick/.claude/local/claude" ]; then
-  alias claude="/home/nick/.claude/local/claude"
-fi
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
