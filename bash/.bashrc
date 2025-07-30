@@ -14,6 +14,19 @@ if command -v dotnet >/dev/null 2>&1; then
   export PATH="$HOME/.dotnet/tools:$PATH"
 fi
 
+# Add dotfiles scripts to PATH
+export PATH="$HOME/dotfiles/scripts:$PATH"
+
+# Ensure dotfiles scripts are executable
+if [ -f "$HOME/dotfiles/scripts/tmux-sessionizer" ]; then
+    chmod +x "$HOME/dotfiles/scripts/tmux-sessionizer"
+fi
+
+# Ensure .tmux-sessionizer is executable
+if [ -f "$HOME/.tmux-sessionizer" ]; then
+    chmod +x "$HOME/.tmux-sessionizer"
+fi
+
 # Initialize zoxide if available
 if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init bash)"
