@@ -193,6 +193,5 @@ vim.keymap.set(
 	"n",
 	"<leader>x",
 	"<cmd>!chmod +x %<CR>",
-	{ silent = true },
-	desc({ desc = "Make file you're on executable" })
+	{ silent = true, desc = "Make file you're on executable" }
 )
