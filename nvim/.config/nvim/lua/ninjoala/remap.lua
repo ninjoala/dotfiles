@@ -10,7 +10,6 @@ vim.opt.clipboard = "unnamedplus" -- Use system clipboard by default
 -- 'r' for 'return' (quit returns you to the terminal)
 vim.keymap.set("n", "<leader>e", ":w<CR>", { desc = "Save file (etch changes)" })
 vim.keymap.set("n", "<leader>r", ":q<CR>", { desc = "Quit (return to terminal)" })
-vim.keymap.set("n", "<leader>R", ":q!<CR>", { desc = "Force quit (return immediately)" })
 vim.keymap.set("n", "<leader>E", ":wq<CR>", { desc = "Save and quit (etch and return)" })
 
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move highlighted code down" })
@@ -189,9 +188,4 @@ vim.keymap.set(
 	[[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
 	{ desc = "Rename word whole file" }
 )
-vim.keymap.set(
-	"n",
-	"<leader>x",
-	"<cmd>!chmod +x %<CR>",
-	{ silent = true, desc = "Make file you're on executable" }
-)
+vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make file you're on executable" })
