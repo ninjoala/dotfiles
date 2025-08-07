@@ -1,0 +1,119 @@
+{
+    "$help": "https://aka.ms/terminal-documentation",
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "actions": [],
+    "alwaysShowTabs": true,
+    "copyFormatting": "none",
+    "copyOnSelect": false,
+    "defaultProfile": "{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}",
+    "keybindings": 
+    [
+        {
+            "id": "Terminal.CopyToClipboard",
+            "keys": "ctrl+c"
+        },
+        {
+            "id": "Terminal.PasteFromClipboard",
+            "keys": "ctrl+v"
+        },
+        {
+            "id": "Terminal.DuplicatePaneAuto",
+            "keys": "alt+shift+d"
+        }
+    ],
+    "newTabMenu": 
+    [
+        {
+            "type": "remainingProfiles"
+        }
+    ],
+    "profiles": 
+    {
+        "defaults": 
+        {
+            "backgroundImage": "C:/Users/dobos_n/background/JoshuaStars.jpg",
+            "backgroundImageAlignment": "center",
+            "backgroundImageOpacity": 0.2
+        },
+        "list": 
+        [
+            {
+                "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "hidden": false,
+                "name": "Windows PowerShell"
+            },
+            {
+                "commandline": "%SystemRoot%\\System32\\cmd.exe",
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "hidden": false,
+                "name": "Command Prompt"
+            },
+            {
+                "guid": "{b453ae62-4e3d-5e58-b989-0a998ec441b8}",
+                "hidden": false,
+                "name": "Azure Cloud Shell",
+                "source": "Windows.Terminal.Azure"
+            },
+            {
+                "guid": "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}",
+                "hidden": false,
+                "name": "Git Bash",
+                "source": "Git"
+            },
+            {
+                "guid": "{276628ec-275f-5e6b-88e8-51cbb80339bb}",
+                "hidden": false,
+                "name": "Developer Command Prompt for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{e78ea212-64fb-5f6a-a490-a4c8ddae3b5d}",
+                "hidden": false,
+                "name": "Developer PowerShell for VS 2022",
+                "source": "Windows.Terminal.VisualStudio"
+            },
+            {
+                "guid": "{16208362-94fc-5b1f-a491-5b2624d5ab56}",
+                "hidden": true,
+                "name": "Visual Studio Debug Console",
+                "source": "VSDebugConsole"
+            },
+            {
+                "guid": "{58ad8b0c-3ef8-5f4d-bc6f-13e4c00f2530}",
+                "hidden": false,
+                "name": "Debian",
+                "source": "Windows.Terminal.Wsl"
+            },
+            {
+                "guid": "{284265c4-3a38-5ef4-a166-923cdd5ddcd2}",
+                "hidden": false,
+                "name": "wsl-vpnkit",
+                "source": "Microsoft.WSL"
+            },
+            {
+                "guid": "{8bcc06f8-86a6-51cc-8e0f-c7895016fffa}",
+                "hidden": false,
+                "name": "wsl-vpnkit",
+                "source": "Microsoft.WSL"
+            },
+            {
+                "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+                "hidden": false,
+                "name": "PowerShell",
+                "source": "Windows.Terminal.PowershellCore"
+            },
+            {
+                "commandline": "C:\\msys64\\usr\\bin\\bash.exe --login -i -c \"cd ~ && /usr/bin/env MSYSTEM=MINGW64 /usr/bin/bash\"",
+                "guid": "{e3e4ae95-8569-4766-94b9-af6b952bf499}",
+                "hidden": false,
+                "name": "msys2"
+            }
+        ]
+    },
+    "schemes": [],
+    "showTabsInTitlebar": true,
+    "tabWidthMode": "compact",
+    "themes": [],
+    "useAcrylicInTabRow": true
+}
