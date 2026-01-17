@@ -37,12 +37,30 @@ format_tasks() {
         # Compact format - extract only essential fields
         python3 -c '
 import sys, json
+from datetime import datetime
+
 tasks = json.load(sys.stdin)
 for t in tasks:
     status = "✓" if t["done"] else "○"
     tid = t["id"]
     title = t["title"]
-    print(f"{status} [{tid}] {title}")
+
+    # Build output line
+    line = f"{status} [{tid}] {title}"
+
+    # Add due date if set
+    due_date = t.get("due_date", "")
+    if due_date and due_date != "0001-01-01T00:00:00Z":
+        dt = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+        date_str = dt.strftime("%Y-%m-%d")
+        line += f" (Due: {date_str})"
+
+    print(line)
+
+    # Add description if present
+    desc = t.get("description", "").strip()
+    if desc:
+        print(f"    Note: {desc}")
 '
     fi
 }
@@ -70,8 +88,67 @@ if desc:
 case "$1" in
     list-tasks)
         PROJECT_ID="${2:-3}"
-        curl -s "${API_URL}/projects/${PROJECT_ID}/tasks" \
-            -H "Authorization: Bearer $TOKEN" | format_tasks
+
+        if [[ "$PROJECT_ID" == "all" ]]; then
+            # Fetch all projects first
+            PROJECTS=$(curl -s "${API_URL}/projects" -H "Authorization: Bearer $TOKEN")
+
+            # Loop through each project and show tasks
+            echo "$PROJECTS" | TOKEN="$TOKEN" API_URL="$API_URL" python3 -c '
+import sys, json, subprocess, os
+
+projects = json.load(sys.stdin)
+token = os.environ["TOKEN"]
+api_url = os.environ["API_URL"]
+
+for p in projects:
+    if p["id"] > 0:  # Skip special projects
+        # Fetch tasks for this project
+        import urllib.request
+        project_id = p["id"]
+        project_title = p["title"]
+        url = f"{api_url}/projects/{project_id}/tasks"
+
+        req = urllib.request.Request(
+            url,
+            headers={"Authorization": f"Bearer {token}"}
+        )
+
+        try:
+            with urllib.request.urlopen(req) as response:
+                tasks = json.load(response)
+                open_tasks = [t for t in tasks if not t["done"]]
+
+                if open_tasks:
+                    print(f"\n=== {project_title} ({len(open_tasks)} open) ===")
+                    for t in open_tasks:
+                        task_id = t["id"]
+                        task_title = t["title"]
+
+                        # Build output line
+                        line = f"○ [{task_id}] {task_title}"
+
+                        # Add due date if set
+                        due_date = t.get("due_date", "")
+                        if due_date and due_date != "0001-01-01T00:00:00Z":
+                            from datetime import datetime
+                            dt = datetime.fromisoformat(due_date.replace("Z", "+00:00"))
+                            date_str = dt.strftime("%Y-%m-%d")
+                            line += f" (Due: {date_str})"
+
+                        print(line)
+
+                        # Add description if present
+                        desc = t.get("description", "").strip()
+                        if desc:
+                            print(f"    Note: {desc}")
+        except Exception as e:
+            print(f"Error fetching tasks for {project_title}: {e}", file=sys.stderr)
+'
+        else
+            curl -s "${API_URL}/projects/${PROJECT_ID}/tasks" \
+                -H "Authorization: Bearer $TOKEN" | format_tasks
+        fi
         ;;
 
     create-task)
@@ -85,7 +162,7 @@ case "$1" in
             exit 1
         fi
 
-        curl -s "${API_URL}/projects/${PROJECT_ID}/tasks" \
+        curl -s -X PUT "${API_URL}/projects/${PROJECT_ID}/tasks" \
             -H "Authorization: Bearer $TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"title\": \"$TITLE\", \"description\": \"$DESCRIPTION\"}" | format_task
@@ -129,7 +206,7 @@ for p in projects:
         echo "Vikunja API Helper"
         echo ""
         echo "Usage:"
-        echo "  $0 [--json] list-tasks [project_id]           - List tasks (default: 3)"
+        echo "  $0 [--json] list-tasks [project_id|all]       - List tasks (default: 3, use 'all' for all projects)"
         echo "  $0 [--json] create-task [project_id] \"title\" [\"desc\"] - Create task"
         echo "  $0 [--json] update-task <task_id> [true|false] - Update task"
         echo "  $0 [--json] list-projects                      - List projects"
@@ -138,7 +215,8 @@ for p in projects:
         echo "  --json    Output raw JSON (default: compact format to save context)"
         echo ""
         echo "Examples:"
-        echo "  $0 list-tasks 3              # Compact: ○ [22] finish onboarding"
+        echo "  $0 list-tasks 3              # Boosted project: ○ [22] finish onboarding"
+        echo "  $0 list-tasks all            # All projects with headers"
         echo "  $0 --json list-tasks 3       # Full JSON for piping to jq"
         echo "  $0 create-task 3 \"Finish landing page\""
         echo "  $0 update-task 22 true"

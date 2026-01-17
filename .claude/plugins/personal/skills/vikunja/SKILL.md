@@ -1,6 +1,6 @@
 ---
 name: vikunja
-description: This skill should be used when the user asks to "check vikunja", "check my tasks", "show tasks", "add task", "update task", "complete task", mentions "Vikunja", or discusses task management in the todo.dobosprime.com system.
+description: This skill should be used when the user asks to "check my tasks", "show my tasks", "what should I work on", "add task", "update task", "complete task", mentions "Vikunja" or "Boosted tasks". By default, focus on the Boosted project (ID 3) unless the user specifies a different project.
 version: 1.0.0
 ---
 
@@ -42,11 +42,34 @@ This script handles token retrieval internally and keeps it out of command histo
 
 ## Common Operations
 
+**IMPORTANT**: The script outputs pre-formatted text by default. DO NOT pipe to jq or other parsers. Use the output directly.
+
 ### 1. List Tasks in a Project
 
+**Single project:**
 ```bash
 ~/.claude-config/plugins/personal/scripts/vikunja-api.sh list-tasks 3
 ```
+Output format: `○ [22] finish onboarding` (already formatted, ready to display)
+
+**All projects (recommended for "check my tasks"):**
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh list-tasks all
+```
+Output format:
+```
+=== Boosted (9 open) ===
+○ [22] finish onboarding
+○ [23] check github
+
+=== Home Lab (5 open) ===
+○ [5] backup strat for proxmox
+```
+
+**When to use `all` vs specific project:**
+- Generic "check my tasks" → Use `all` (1 command instead of 4+)
+- "check my Boosted tasks" → Use `3`
+- "what do I need to do for home lab" → Use `2`
 
 ### 2. Create a New Task
 
@@ -66,6 +89,8 @@ This script handles token retrieval internally and keeps it out of command histo
 ~/.claude-config/plugins/personal/scripts/vikunja-api.sh list-projects
 ```
 
+Output format: `[3] Boosted` (already formatted, ready to display)
+
 ## Task Response Format
 
 Tasks are returned as JSON with these key fields:
@@ -82,30 +107,31 @@ Tasks are returned as JSON with these key fields:
 
 1. **ALWAYS use the helper script** - Never expose the API token in command output
 2. **Use the full path** to the script: `~/.claude-config/plugins/personal/scripts/vikunja-api.sh`
-3. **Provide context** when listing tasks (show title, done status, ID)
-4. **Confirm actions** before creating/updating tasks
-5. **Handle errors gracefully** and inform the user if API calls fail
-6. **Pipe to jq** for formatted output: `vikunja-api.sh list-tasks 3 | jq`
+3. **DO NOT pipe to jq or other parsers** - The script already formats output in compact mode
+4. **For raw JSON** - Use `--json` flag: `vikunja-api.sh --json list-tasks 3`
+5. **Provide context** when listing tasks (show title, done status, ID)
+6. **Confirm actions** before creating/updating tasks
+7. **Handle errors gracefully** and inform the user if API calls fail
 
 ## Example Workflows
 
 ### Show all Boosted tasks
-1. Fetch token from secrets file
-2. Call `/api/v1/projects/3/tasks`
-3. Parse JSON and present in readable format
-4. Show: ID, title, completion status
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh list-tasks 3
+```
+Output: Pre-formatted list like `○ [22] finish onboarding`
 
 ### Add task to Boosted project
-1. Confirm task details with user
-2. Fetch token from secrets file
-3. POST to `/api/v1/projects/3/tasks` with title and description
-4. Confirm task creation with returned ID
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh create-task 3 "Finish landing page" "Add hero section and CTA"
+```
+Output: Confirmation with task ID
 
 ### Mark task as complete
-1. User provides task ID or title
-2. If title provided, fetch tasks to find ID
-3. POST update with `"done": true`
-4. Confirm completion
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh update-task 22 true
+```
+Output: Confirmation of completion
 
 ## When to Use This Skill
 
