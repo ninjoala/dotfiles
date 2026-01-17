@@ -86,27 +86,18 @@ Skills are **automatically invoked** by Claude when relevant. You don't need to 
 - "Add task to finish the landing page" → Claude creates task via API
 - "Check my tasks" → Claude fetches and displays your Vikunja todos
 
-### Plugin Loading
+### How Skills Load
 
-Add this to your `~/.claude/settings.local.json` (NOT in dotfiles, in the actual ~/.claude directory):
+Skills are automatically loaded from `~/.config/claude/skills/`. The setup script creates symlinks from this directory to your dotfiles skills, so they're synced across machines via git but loaded from the standard Claude Code location.
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "personal-plugins": {
-      "source": {
-        "source": "directory",
-        "path": "~/.claude-config/plugins"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "personal@personal-plugins": true
-  }
-}
+```bash
+~/.config/claude/skills/vikunja -> ~/dotfiles/.claude/plugins/personal/skills/vikunja
 ```
 
-This configures Claude Code to load your personal plugins from the dotfiles directory via the `~/.claude-config` symlink.
+**Why symlinks?**
+- Claude Code scans `~/.config/claude/skills/` at startup
+- Dotfiles are synced via git and available at `~/.claude-config/` (symlink)
+- Best of both worlds: Claude finds skills + version control
 
 ## Adding New Services
 
