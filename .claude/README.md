@@ -88,14 +88,14 @@ Skills are **automatically invoked** by Claude when relevant. You don't need to 
 
 ### How Skills Load
 
-Skills are automatically loaded from `~/.config/claude/skills/`. The setup script creates symlinks from this directory to your dotfiles skills, so they're synced across machines via git but loaded from the standard Claude Code location.
+Skills are automatically loaded from `~/.claude/skills/`. The setup script creates symlinks from this directory to your dotfiles skills, so they're synced across machines via git but loaded from the standard Claude Code location.
 
 ```bash
-~/.config/claude/skills/vikunja -> ~/dotfiles/.claude/plugins/personal/skills/vikunja
+~/.claude/skills/vikunja -> ~/dotfiles/.claude/plugins/personal/skills/vikunja
 ```
 
 **Why symlinks?**
-- Claude Code scans `~/.config/claude/skills/` at startup
+- Claude Code scans `~/.claude/skills/` at startup (and hot-reloads changes!)
 - Dotfiles are synced via git and available at `~/.claude-config/` (symlink)
 - Best of both worlds: Claude finds skills + version control
 

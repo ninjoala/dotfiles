@@ -25,7 +25,7 @@ for template in "$CONFIG_DIR"/*.template.json; do
 done
 
 # Link skills to Claude's user skills directory
-SKILLS_DIR="$HOME/.config/claude/skills"
+SKILLS_DIR="$HOME/.claude/skills"
 mkdir -p "$SKILLS_DIR"
 
 echo "📝 Linking skills to Claude Code..."
@@ -51,8 +51,8 @@ echo ""
 echo "Next steps:"
 echo "1. Edit the files in $SECRETS_DIR with your actual credentials"
 echo "2. Create symlink: ln -s ~/dotfiles/.claude ~/.claude-config"
-echo "3. Restart Claude Code to load skills"
+echo "3. Restart Claude Code to load skills (or wait for hot-reload)"
 echo "4. Test with: 'check my tasks' in Claude"
 echo ""
-echo "Skills linked in ~/.config/claude/skills/"
+echo "Skills linked in ~/.claude/skills/"
 echo ""
