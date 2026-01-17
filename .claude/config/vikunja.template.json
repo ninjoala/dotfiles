@@ -1,0 +1,6 @@
+{
+  "apiUrl": "https://your-vikunja-instance.com",
+  "apiToken": "your_vikunja_api_token_here",
+  "defaultListId": null,
+  "description": "Vikunja task management API credentials"
+}

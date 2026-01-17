@@ -1,0 +1,5 @@
+{
+  "token": "ghp_your_github_token_here",
+  "defaultOrg": "your-github-org",
+  "description": "GitHub API token for enhanced repository access"
+}

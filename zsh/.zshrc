@@ -43,4 +43,7 @@ if command -v zoxide >/dev/null 2>&1; then
 fi
 
 # Load syntax highlighting; should be last.
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null 
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null export PATH="$HOME/.local/bin:$PATH"
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
