@@ -88,7 +88,25 @@ Skills are **automatically invoked** by Claude when relevant. You don't need to 
 
 ### Plugin Loading
 
-The `settings.json` file configures Claude to automatically load plugins from `~/.claude-config/plugins/personal` on every session.
+Add this to your `~/.claude/settings.local.json` (NOT in dotfiles, in the actual ~/.claude directory):
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "personal-plugins": {
+      "source": {
+        "source": "directory",
+        "path": "~/.claude-config/plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "personal@personal-plugins": true
+  }
+}
+```
+
+This configures Claude Code to load your personal plugins from the dotfiles directory via the `~/.claude-config` symlink.
 
 ## Adding New Services
 

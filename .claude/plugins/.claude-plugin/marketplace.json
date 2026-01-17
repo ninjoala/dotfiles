@@ -1,0 +1,14 @@
+{
+  "name": "personal-plugins",
+  "description": "Nick's personal Claude Code plugins",
+  "plugins": {
+    "personal": {
+      "name": "Personal Utilities",
+      "description": "Custom skills and utilities including Vikunja task management",
+      "source": {
+        "type": "directory",
+        "path": "personal"
+      }
+    }
+  }
+}
