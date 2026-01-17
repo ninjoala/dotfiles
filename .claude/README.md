@@ -2,6 +2,8 @@
 
 This directory contains configuration and credentials for Claude Code assistant to provide better context-aware help across all your projects.
 
+**Note**: This config lives at `~/.claude-config` (not `~/.claude`) because Claude Code uses `~/.claude` for its own internal configuration.
+
 ## Structure
 
 - **config/**: Template files (committed to git)
@@ -30,23 +32,31 @@ This directory contains configuration and credentials for Claude Code assistant 
    # Or use your preferred editor
    ```
 
-4. Use stow to create the `~/.claude` symlink:
+4. Create the `~/.claude-config` symlink:
    ```bash
-   cd ~/dotfiles
-   stow .claude
+   # Direct symlink (we don't use stow here because Claude Code already uses ~/.claude)
+   ln -s ~/dotfiles/.claude ~/.claude-config
    ```
 
 5. Verify it works:
    ```bash
-   cat ~/.claude/secrets/vikunja.json
+   cat ~/.claude-config/secrets/vikunja.json
    ```
 
-## What Claude Can Access
+## How to Use With Claude
 
-When you work with Claude in any project, it can read:
+Claude doesn't automatically read this config. Instead, use these simple commands:
 
-- **Vikunja Tasks**: Your current todo list to understand priorities
-- **GitHub Context**: Enhanced repository access and issue tracking
+**To access your Vikunja tasks:**
+- Say: "**check my tasks**" or "**read my Vikunja tasks**"
+- Claude will:
+  1. Read `~/.claude-config/secrets/vikunja.json` for credentials
+  2. Fetch your current tasks via the Vikunja API
+  3. Show them to you
+
+**What's stored here:**
+- **Vikunja credentials**: API URL and token for task management
+- **GitHub token**: For enhanced repository access
 - **Preferences**: Task management settings
 
 ## Security
