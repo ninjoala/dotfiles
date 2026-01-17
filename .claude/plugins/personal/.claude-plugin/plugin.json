@@ -1,0 +1,9 @@
+{
+  "name": "personal",
+  "description": "Nick's personal Claude Code skills and utilities",
+  "author": {
+    "name": "Nicholas Dobos",
+    "email": "ndobos95@gmail.com"
+  },
+  "version": "1.0.0"
+}

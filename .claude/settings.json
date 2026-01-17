@@ -1,0 +1,5 @@
+{
+  "pluginDirs": [
+    "~/.claude-config/plugins/personal"
+  ]
+}

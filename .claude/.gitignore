@@ -1,0 +1,7 @@
+# Keep secrets private
+secrets/
+
+# Don't commit personal tokens or credentials
+*.token
+*.key
+*_credentials.json

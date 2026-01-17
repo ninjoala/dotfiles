@@ -65,9 +65,50 @@ Claude doesn't automatically read this config. Instead, use these simple command
 - Template files show structure but contain placeholder values
 - Secrets never touch git history
 
+## Plugins and Skills
+
+This directory includes a custom `personal` plugin with skills that Claude automatically uses.
+
+### Available Skills
+
+**Vikunja** (`skills/vikunja/`):
+- Automatically activates when you mention tasks, Vikunja, or todo management
+- Connects to todo.dobosprime.com
+- Can list, create, update, and complete tasks
+- Uses credentials from `secrets/vikunja.json`
+
+### How Skills Work
+
+Skills are **automatically invoked** by Claude when relevant. You don't need to explicitly call them.
+
+**Example conversations:**
+- "Show me my Boosted tasks" → Claude uses Vikunja skill
+- "Add task to finish the landing page" → Claude creates task via API
+- "Check my tasks" → Claude fetches and displays your Vikunja todos
+
+### Plugin Loading
+
+The `settings.json` file configures Claude to automatically load plugins from `~/.claude-config/plugins/personal` on every session.
+
 ## Adding New Services
 
 1. Create template: `.claude/config/newservice.template.json`
 2. Run `./setup.sh` to generate secrets file from template
 3. Fill in actual credentials in `secrets/newservice.json`
 4. Update this README with service description
+
+## Adding New Skills
+
+1. Create skill directory: `plugins/personal/skills/my-skill/`
+2. Create `SKILL.md` with frontmatter:
+   ```markdown
+   ---
+   name: my-skill
+   description: When to use this skill (trigger phrases, keywords)
+   version: 1.0.0
+   ---
+
+   # Skill instructions here
+   ```
+3. Commit to dotfiles (skills are synced across machines)
+4. Claude will automatically use it when relevant
