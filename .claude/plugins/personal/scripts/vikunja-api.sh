@@ -155,17 +155,30 @@ for p in projects:
         PROJECT_ID="${2:-3}"
         TITLE="$3"
         DESCRIPTION="${4:-}"
+        DUE_DATE="${5:-}"
 
         if [ -z "$TITLE" ]; then
             echo "Error: Task title required" >&2
-            echo "Usage: $0 create-task [project_id] \"title\" [\"description\"]" >&2
+            echo "Usage: $0 create-task [project_id] \"title\" [\"description\"] [\"due_date\"]" >&2
             exit 1
         fi
+
+        # Build JSON payload
+        JSON_DATA="{\"title\": \"$TITLE\", \"description\": \"$DESCRIPTION\""
+
+        # Add due date if provided (expects YYYY-MM-DD format, converts to RFC3339)
+        if [ -n "$DUE_DATE" ]; then
+            # Convert YYYY-MM-DD to RFC3339 format (end of day in UTC)
+            DUE_RFC3339="${DUE_DATE}T23:59:59Z"
+            JSON_DATA="$JSON_DATA, \"due_date\": \"$DUE_RFC3339\""
+        fi
+
+        JSON_DATA="$JSON_DATA}"
 
         curl -s -X PUT "${API_URL}/projects/${PROJECT_ID}/tasks" \
             -H "Authorization: Bearer $TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"title\": \"$TITLE\", \"description\": \"$DESCRIPTION\"}" | format_task
+            -d "$JSON_DATA" | format_task
         ;;
 
     update-task)
@@ -182,6 +195,25 @@ for p in projects:
             -H "Authorization: Bearer $TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"done\": $DONE}" | format_task
+        ;;
+
+    set-due-date)
+        TASK_ID="$2"
+        DUE_DATE="$3"
+
+        if [ -z "$TASK_ID" ] || [ -z "$DUE_DATE" ]; then
+            echo "Error: Task ID and due date required" >&2
+            echo "Usage: $0 set-due-date <task_id> <YYYY-MM-DD>" >&2
+            exit 1
+        fi
+
+        # Convert YYYY-MM-DD to RFC3339 format (end of day in UTC)
+        DUE_RFC3339="${DUE_DATE}T23:59:59Z"
+
+        curl -s -X POST "${API_URL}/tasks/${TASK_ID}" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"due_date\": \"$DUE_RFC3339\"}" | format_task
         ;;
 
     list-projects)
@@ -206,20 +238,23 @@ for p in projects:
         echo "Vikunja API Helper"
         echo ""
         echo "Usage:"
-        echo "  $0 [--json] list-tasks [project_id|all]       - List tasks (default: 3, use 'all' for all projects)"
-        echo "  $0 [--json] create-task [project_id] \"title\" [\"desc\"] - Create task"
-        echo "  $0 [--json] update-task <task_id> [true|false] - Update task"
-        echo "  $0 [--json] list-projects                      - List projects"
+        echo "  $0 [--json] list-tasks [project_id|all]                    - List tasks (default: 3, use 'all' for all projects)"
+        echo "  $0 [--json] create-task [project_id] \"title\" [\"desc\"] [\"YYYY-MM-DD\"] - Create task with optional due date"
+        echo "  $0 [--json] update-task <task_id> [true|false]             - Update task completion status"
+        echo "  $0 [--json] set-due-date <task_id> <YYYY-MM-DD>            - Set or update task due date"
+        echo "  $0 [--json] list-projects                                  - List projects"
         echo ""
         echo "Options:"
         echo "  --json    Output raw JSON (default: compact format to save context)"
         echo ""
         echo "Examples:"
-        echo "  $0 list-tasks 3              # Boosted project: ○ [22] finish onboarding"
-        echo "  $0 list-tasks all            # All projects with headers"
-        echo "  $0 --json list-tasks 3       # Full JSON for piping to jq"
+        echo "  $0 list-tasks 3                                  # Boosted project: ○ [22] finish onboarding"
+        echo "  $0 list-tasks all                                # All projects with headers"
+        echo "  $0 --json list-tasks 3                           # Full JSON for piping to jq"
         echo "  $0 create-task 3 \"Finish landing page\""
-        echo "  $0 update-task 22 true"
+        echo "  $0 create-task 3 \"Mail packages\" \"\" \"2026-01-20\"  # Task with due date"
+        echo "  $0 set-due-date 90 \"2026-01-20\"                  # Set due date on existing task"
+        echo "  $0 update-task 22 true                           # Mark task as done"
         exit 1
         ;;
 esac

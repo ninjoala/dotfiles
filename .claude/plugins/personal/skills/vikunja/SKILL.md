@@ -73,17 +73,33 @@ Output format:
 
 ### 2. Create a New Task
 
+**Without due date:**
 ```bash
 ~/.claude-config/plugins/personal/scripts/vikunja-api.sh create-task 3 "Task title here" "Optional description"
 ```
 
-### 3. Update a Task (Mark as Done)
+**With due date:**
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh create-task 3 "Task title here" "Optional description" "2026-01-20"
+```
+
+**Note**: Due dates must be in YYYY-MM-DD format. The description parameter is required but can be empty ("") if you want to set a due date without a description.
+
+### 3. Set or Update Due Date on Existing Task
+
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh set-due-date 90 "2026-01-20"
+```
+
+**Note**: This updates only the due date field. Date format must be YYYY-MM-DD.
+
+### 4. Update a Task (Mark as Done)
 
 ```bash
 ~/.claude-config/plugins/personal/scripts/vikunja-api.sh update-task 22 true
 ```
 
-### 4. List All Projects
+### 5. List All Projects
 
 ```bash
 ~/.claude-config/plugins/personal/scripts/vikunja-api.sh list-projects
@@ -126,6 +142,18 @@ Output: Pre-formatted list like `○ [22] finish onboarding`
 ~/.claude-config/plugins/personal/scripts/vikunja-api.sh create-task 3 "Finish landing page" "Add hero section and CTA"
 ```
 Output: Confirmation with task ID
+
+### Add task with due date
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh create-task 10 "Mail packages" "Take to post office" "2026-01-20"
+```
+Output: Task created with due date displayed
+
+### Set due date on existing task
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh set-due-date 90 "2026-01-20"
+```
+Output: Task updated with due date
 
 ### Mark task as complete
 ```bash
