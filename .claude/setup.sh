@@ -45,14 +45,37 @@ for skill in "$SCRIPT_DIR/plugins/personal/skills"/*; do
     fi
 done
 
+# Link agents to Claude's user agents directory
+AGENTS_DIR="$HOME/.claude/agents"
+mkdir -p "$AGENTS_DIR"
+
+echo "📝 Linking agents to Claude Code..."
+
+# Link all agent files from personal plugin
+for agent in "$SCRIPT_DIR/plugins/personal/agents"/*.md; do
+    if [ -f "$agent" ] && [[ $(basename "$agent") != "USAGE_EXAMPLES.md" ]]; then
+        agent_name=$(basename "$agent")
+        target="$AGENTS_DIR/$agent_name"
+
+        if [ -L "$target" ]; then
+            echo "✅ $agent_name already linked, skipping..."
+        else
+            ln -sf "$agent" "$target"
+            echo "✅ Linked $agent_name"
+        fi
+    fi
+done
+
 echo ""
 echo "✨ Setup complete!"
 echo ""
 echo "Next steps:"
 echo "1. Edit the files in $SECRETS_DIR with your actual credentials"
 echo "2. Create symlink: ln -s ~/dotfiles/.claude ~/.claude-config"
-echo "3. Restart Claude Code to load skills (or wait for hot-reload)"
-echo "4. Test with: 'check my tasks' in Claude"
+echo "3. Restart Claude Code to load skills and agents (or wait for hot-reload)"
+echo "4. Test skills with: 'check my tasks' in Claude"
+echo "5. Test agents by invoking them via Task tool"
 echo ""
 echo "Skills linked in ~/.claude/skills/"
+echo "Agents linked in ~/.claude/agents/"
 echo ""
