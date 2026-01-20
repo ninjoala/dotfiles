@@ -99,6 +99,32 @@ Skills are automatically loaded from `~/.claude/skills/`. The setup script creat
 - Dotfiles are synced via git and available at `~/.claude-config/` (symlink)
 - Best of both worlds: Claude finds skills + version control
 
+### Available Agents (Subagents)
+
+**GitHub Issue Planner** (`agents/github-issue-planner.md`):
+- Expert at parsing GitHub issues and creating actionable task breakdowns
+- Invoked with: Task tool, subagent_type="github-issue-planner"
+- Fetches issues using `gh` CLI
+- Extracts requirements, acceptance criteria, and dependencies
+- Creates detailed implementation plans
+- Can handle single or multiple issues for sprint planning
+
+**How to use:**
+```
+User: "Parse GitHub issue #123 and create tasks"
+Assistant: [Uses Task tool with subagent_type="github-issue-planner"]
+```
+
+### How Agents Work
+
+Agents are **custom subagent definitions** that you invoke via the Task tool. Unlike skills (which activate automatically), you explicitly call agents when you need specialized analysis or planning.
+
+**Agents vs Skills:**
+- **Skills**: Auto-activate based on keywords (e.g., "check my tasks" → Vikunja skill)
+- **Agents**: Invoked via Task tool for specialized work (e.g., Task with github-issue-planner)
+
+Agents are loaded from your plugin's `agents/` directory and are available across all projects.
+
 ## Adding New Services
 
 1. Create template: `.claude/config/newservice.template.json`
@@ -121,3 +147,28 @@ Skills are automatically loaded from `~/.claude/skills/`. The setup script creat
    ```
 3. Commit to dotfiles (skills are synced across machines)
 4. Claude will automatically use it when relevant
+
+## Adding New Agents
+
+1. Create agent file: `plugins/personal/agents/my-agent.md`
+2. Create markdown file with frontmatter:
+   ```markdown
+   ---
+   name: my-agent
+   description: When to use this agent (with examples showing invocation)
+   tools: Bash, Glob, Grep, Read, WebFetch, TodoWrite
+   model: sonnet
+   color: blue
+   ---
+
+   # Agent system prompt and instructions here
+   ```
+3. Commit to dotfiles (agents are synced across machines)
+4. Invoke using Task tool: `subagent_type="my-agent"`
+
+**Agent frontmatter fields:**
+- `name`: Agent identifier (used in Task tool)
+- `description`: When/how to use (include usage examples)
+- `tools`: Which tools agent can access (optional, defaults to all)
+- `model`: sonnet, opus, haiku, or inherit
+- `color`: UI color (blue, green, purple, etc.)
