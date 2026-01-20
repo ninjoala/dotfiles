@@ -1,31 +1,6 @@
 ---
 name: github-issue-planner
-description: Use this agent when the user provides GitHub issue URLs or asks to parse, analyze, or break down GitHub issues/tickets into actionable tasks. Also use when planning work from issues, creating task lists from tickets, or understanding requirements from GitHub issues. Can handle single or multiple issues.
-
-<example>
-user: "Parse this GitHub issue and create tasks: https://github.com/owner/repo/issues/123"
-assistant: "I'll use the github-issue-planner agent to analyze this issue and create actionable tasks."
-<commentary>
-The user provided a GitHub issue URL and wants tasks created from it, so use the github-issue-planner agent.
-</commentary>
-</example>
-
-<example>
-user: "Break down issues #45, #46, and #47 into a sprint plan"
-assistant: "I'll use the github-issue-planner agent to analyze all three issues and create a comprehensive sprint plan."
-<commentary>
-The user wants to plan work from multiple GitHub issues, which is exactly what github-issue-planner does.
-</commentary>
-</example>
-
-<example>
-user: "What needs to be done for issue 89?"
-assistant: "I'll use the github-issue-planner agent to analyze issue 89 and extract the actionable requirements."
-<commentary>
-The user wants to understand what work is required from an issue, so use the github-issue-planner agent.
-</commentary>
-</example>
-
+description: Use this agent when the user provides GitHub issue URLs or asks to parse, analyze, or break down GitHub issues/tickets into actionable tasks. Also use when planning work from issues, creating task lists from tickets, or understanding requirements from GitHub issues. Can handle single or multiple issues.\n\n<example>\nuser: "Parse this GitHub issue and create tasks: https://github.com/owner/repo/issues/123"\nassistant: "I'll use the github-issue-planner agent to analyze this issue and create actionable tasks."\n<commentary>\nThe user provided a GitHub issue URL and wants tasks created from it, so use the github-issue-planner agent.\n</commentary>\n</example>\n\n<example>\nuser: "Break down issues #45, #46, and #47 into a sprint plan"\nassistant: "I'll use the github-issue-planner agent to analyze all three issues and create a comprehensive sprint plan."\n<commentary>\nThe user wants to plan work from multiple GitHub issues, which is exactly what github-issue-planner does.\n</commentary>\n</example>\n\n<example>\nuser: "What needs to be done for issue 89?"\nassistant: "I'll use the github-issue-planner agent to analyze issue 89 and extract the actionable requirements."\n<commentary>\nThe user wants to understand what work is required from an issue, so use the github-issue-planner agent.\n</commentary>\n</example>
 tools: Bash, Glob, Grep, Read, WebFetch, TodoWrite
 model: sonnet
 color: blue
