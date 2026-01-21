@@ -107,6 +107,47 @@ Output format:
 
 Output format: `[3] Boosted` (already formatted, ready to display)
 
+### 6. Label Management
+
+**List all labels:**
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh list-labels
+```
+
+**Create a new label:**
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh create-label "label-name" "Description" "hex_color"
+```
+
+**Add label to task:**
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh add-label <task_id> <label_id>
+```
+
+**Remove label from task:**
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh remove-label <task_id> <label_id>
+```
+
+**Show labels on a task:**
+```bash
+~/.claude-config/plugins/personal/scripts/vikunja-api.sh task-labels <task_id>
+```
+
+## Standard Labels
+
+The following labels are configured for priority and duration tracking:
+
+### Priority Labels
+- **[4] high-priority** (red #e63946) - Critical tasks needing immediate attention
+- **[5] medium-priority** (orange #f77f00) - Important but not urgent
+- **[6] low-priority** (blue #457b9d) - Nice to have, do when time permits
+- **[9] blocking** (dark red #d00000) - Tasks blocking other work
+
+### Duration Labels
+- **[7] multi-day** (purple #9d4edd) - Tasks requiring multiple days to complete
+- **[8] quick-win** (green #06d6a0) - Tasks that can be completed in under 1 hour
+
 ## Task Response Format
 
 Tasks are returned as JSON with these key fields:
@@ -161,10 +202,34 @@ Output: Task updated with due date
 ```
 Output: Confirmation of completion
 
+## Intelligent Task Filtering
+
+When the user asks "what should I do today", "what's on my todo list", or similar questions, follow this behavior:
+
+1. **Show today's due tasks** (standard behavior)
+2. **Alert about upcoming multi-day tasks** - If tasks are due in 2-5 days and tagged with `multi-day` label, show a warning to start them now
+3. **Highlight high-priority items** - Even if not due today, if tagged `high-priority`, include them in the summary
+4. **Flag blocking tasks** - Tasks with `blocking` label need immediate attention since they block other work
+5. **Suggest quick wins** - If the user has downtime or asks "what's quick", show tasks tagged `quick-win`
+
+### Example Response Format
+
+```
+TODAY (Jan 21):
+- [103] send amy setchels picture to walgreens (Home)
+
+UPCOMING MULTI-DAY TASKS (start soon!):
+- [95] Build CSV student import feature (Due: Jan 24) 🏷️ high-priority, multi-day, blocking
+
+HIGH PRIORITY (not due today but important):
+- [98] Fix broken /demo link (Due: Jan 22) 🏷️ high-priority, quick-win
+```
+
 ## When to Use This Skill
 
 - User mentions Vikunja, tasks, or todo.dobosprime.com
 - User wants to see their task list
+- User asks "what should I do today", "what's next", "what should I work on"
 - User wants to add, update, or complete tasks
 - User asks about project management or tracking work
 - Planning development sprints or tracking progress

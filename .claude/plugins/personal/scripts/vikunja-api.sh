@@ -234,15 +234,150 @@ for p in projects:
         fi
         ;;
 
+    list-labels)
+        curl -s "${API_URL}/labels" \
+            -H "Authorization: Bearer $TOKEN" | \
+        if [[ "$FORMAT" == "json" ]]; then
+            cat
+        else
+            python3 -c '
+import sys, json
+labels = json.load(sys.stdin)
+for l in labels:
+    lid = l["id"]
+    title = l["title"]
+    desc = l.get("description", "")
+    color = l["hex_color"]
+    if desc:
+        print(f"[{lid}] {title} (#{color}) - {desc}")
+    else:
+        print(f"[{lid}] {title} (#{color})")
+'
+        fi
+        ;;
+
+    create-label)
+        TITLE="$2"
+        DESCRIPTION="${3:-}"
+        COLOR="${4:-457b9d}"  # Default blue
+
+        if [ -z "$TITLE" ]; then
+            echo "Error: Label title required" >&2
+            echo "Usage: $0 create-label \"title\" [\"description\"] [hex_color]" >&2
+            exit 1
+        fi
+
+        JSON_DATA="{\"title\": \"$TITLE\", \"description\": \"$DESCRIPTION\", \"hex_color\": \"$COLOR\"}"
+
+        curl -s -X PUT "${API_URL}/labels" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$JSON_DATA" | \
+        if [[ "$FORMAT" == "json" ]]; then
+            cat
+        else
+            python3 -c '
+import sys, json
+l = json.load(sys.stdin)
+print(f"Created label [{l["id"]}] {l["title"]} (#{l["hex_color"]})")
+'
+        fi
+        ;;
+
+    add-label)
+        TASK_ID="$2"
+        LABEL_ID="$3"
+
+        if [ -z "$TASK_ID" ] || [ -z "$LABEL_ID" ]; then
+            echo "Error: Task ID and Label ID required" >&2
+            echo "Usage: $0 add-label <task_id> <label_id>" >&2
+            exit 1
+        fi
+
+        curl -s -X PUT "${API_URL}/tasks/${TASK_ID}/labels" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"label_id\": $LABEL_ID}" | \
+        if [[ "$FORMAT" == "json" ]]; then
+            cat
+        else
+            python3 -c '
+import sys, json
+result = json.load(sys.stdin)
+if result:
+    print(f"Label added to task [{'"$TASK_ID"'}]")
+else:
+    print("Failed to add label")
+'
+        fi
+        ;;
+
+    remove-label)
+        TASK_ID="$2"
+        LABEL_ID="$3"
+
+        if [ -z "$TASK_ID" ] || [ -z "$LABEL_ID" ]; then
+            echo "Error: Task ID and Label ID required" >&2
+            echo "Usage: $0 remove-label <task_id> <label_id>" >&2
+            exit 1
+        fi
+
+        curl -s -X DELETE "${API_URL}/tasks/${TASK_ID}/labels/${LABEL_ID}" \
+            -H "Authorization: Bearer $TOKEN" | \
+        if [[ "$FORMAT" == "json" ]]; then
+            cat
+        else
+            echo "Label removed from task [$TASK_ID]"
+        fi
+        ;;
+
+    task-labels)
+        TASK_ID="$2"
+
+        if [ -z "$TASK_ID" ]; then
+            echo "Error: Task ID required" >&2
+            echo "Usage: $0 task-labels <task_id>" >&2
+            exit 1
+        fi
+
+        curl -s "${API_URL}/tasks/${TASK_ID}" \
+            -H "Authorization: Bearer $TOKEN" | \
+        if [[ "$FORMAT" == "json" ]]; then
+            cat
+        else
+            python3 -c '
+import sys, json
+task = json.load(sys.stdin)
+labels = task.get("labels", [])
+task_id = task["id"]
+task_title = task["title"]
+if labels:
+    print(f"Labels on task [{task_id}] {task_title}:")
+    for l in labels:
+        label_id = l["id"]
+        label_title = l["title"]
+        label_color = l["hex_color"]
+        print(f"  [{label_id}] {label_title} (#{label_color})")
+else:
+    print(f"No labels on task [{task_id}] {task_title}")
+'
+        fi
+        ;;
+
     *)
         echo "Vikunja API Helper"
         echo ""
         echo "Usage:"
-        echo "  $0 [--json] list-tasks [project_id|all]                    - List tasks (default: 3, use 'all' for all projects)"
+        echo "  $0 [--json] list-tasks [project_id|all]                      - List tasks (default: 3, use 'all' for all projects)"
         echo "  $0 [--json] create-task [project_id] \"title\" [\"desc\"] [\"YYYY-MM-DD\"] - Create task with optional due date"
-        echo "  $0 [--json] update-task <task_id> [true|false]             - Update task completion status"
-        echo "  $0 [--json] set-due-date <task_id> <YYYY-MM-DD>            - Set or update task due date"
-        echo "  $0 [--json] list-projects                                  - List projects"
+        echo "  $0 [--json] update-task <task_id> [true|false]               - Update task completion status"
+        echo "  $0 [--json] set-due-date <task_id> <YYYY-MM-DD>              - Set or update task due date"
+        echo "  $0 [--json] list-projects                                    - List projects"
+        echo "  $0 [--json] list-labels                                      - List all labels"
+        echo "  $0 [--json] create-label \"title\" [\"desc\"] [hex_color]      - Create new label"
+        echo "  $0 [--json] add-label <task_id> <label_id>                   - Add label to task"
+        echo "  $0 [--json] remove-label <task_id> <label_id>                - Remove label from task"
+        echo "  $0 [--json] task-labels <task_id>                            - Show labels on a task"
         echo ""
         echo "Options:"
         echo "  --json    Output raw JSON (default: compact format to save context)"
@@ -255,6 +390,10 @@ for p in projects:
         echo "  $0 create-task 3 \"Mail packages\" \"\" \"2026-01-20\"  # Task with due date"
         echo "  $0 set-due-date 90 \"2026-01-20\"                  # Set due date on existing task"
         echo "  $0 update-task 22 true                           # Mark task as done"
+        echo "  $0 list-labels                                   # Show all labels"
+        echo "  $0 create-label \"high-priority\" \"Critical\" \"e63946\"  # Create red label"
+        echo "  $0 add-label 95 4                                # Add label 4 to task 95"
+        echo "  $0 task-labels 95                                # Show labels on task 95"
         exit 1
         ;;
 esac
