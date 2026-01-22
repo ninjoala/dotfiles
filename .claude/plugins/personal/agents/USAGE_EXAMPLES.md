@@ -2,6 +2,42 @@
 
 This document shows how to use custom agents defined in this directory.
 
+## Installing New Agents
+
+Use the `agent-installer` agent to install agents globally:
+
+```
+Task tool with subagent_type="agent-installer"
+```
+
+The agent-installer will:
+- Validate agent definitions
+- Save agents to `dotfiles/.claude/plugins/personal/agents/`
+- Create symlinks in `~/.claude/agents/`
+- Remind you to restart Claude Code
+
+**IMPORTANT**: You must restart Claude Code after installing new agents for them to be recognized.
+
+### Manual Installation (Reference)
+
+If you need to install manually:
+
+1. **Create agent in dotfiles**:
+   ```bash
+   # Save to dotfiles/.claude/plugins/personal/agents/my-agent.md
+   ```
+
+2. **Symlink to global registry**:
+   ```bash
+   ln -sf ~/dotfiles/.claude/plugins/personal/agents/my-agent.md ~/.claude/agents/
+   ```
+
+3. **Restart Claude Code**
+
+4. **Test**: Use Task tool with `subagent_type="my-agent"`
+
+---
+
 ## GitHub Issue Planner Agent
 
 ### What It Does
