@@ -59,7 +59,7 @@ return {
 			"neovim/nvim-lspconfig",
 		},
 		opts = {
-			ensure_installed = { "lua_ls", "csharp_ls", "pyright", "ts_ls", "html", "cssls", "jsonls" },
+			ensure_installed = { "lua_ls", "pyright", "ts_ls", "html", "cssls", "jsonls" },
 			automatic_installation = true,
 		},
 	},
@@ -85,7 +85,7 @@ return {
 			})
 
 			-- Setup all servers with default config
-			local servers = { "lua_ls", "pyright", "html", "cssls", "jsonls", "ts_ls", "csharp_ls" }
+			local servers = { "lua_ls", "pyright", "html", "cssls", "jsonls", "ts_ls" }
 			for _, server in ipairs(servers) do
 				lspconfig[server].setup({
 					capabilities = capabilities,

@@ -42,8 +42,13 @@ if command -v zoxide >/dev/null 2>&1; then
   eval "$(zoxide init zsh)"
 fi
 
+export PATH="$HOME/.local/bin:$PATH"
+
 # Load syntax highlighting; should be last.
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null export PATH="$HOME/.local/bin:$PATH"
+for f in /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+         /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh; do
+  [[ -r "$f" ]] && source "$f" && break
+done
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"

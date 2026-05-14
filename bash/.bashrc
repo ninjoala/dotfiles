@@ -50,7 +50,6 @@ function cursor() {
 
 # Claude alias if binary exists
 if [ -f "/home/nick/.claude/local/claude" ]; then
-  alias claude="/home/nick/.claude/local/claude"
 fi
 
 export NVM_DIR="$HOME/.nvm"
@@ -58,9 +57,9 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # Initialize pyenv if available
-if command -v pyenv >/dev/null 2>&1; then
+if [[ -d "$HOME/.pyenv" ]]; then
   export PYENV_ROOT="$HOME/.pyenv"
-  [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+  export PATH="$PYENV_ROOT/bin:$PATH"
   eval "$(pyenv init - bash)"
 fi
 # Load git bash completion if available
@@ -91,3 +90,7 @@ check_git_local_config
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+# npm global packages
+export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+export PATH="$HOME/.npm-global/bin:$PATH"
