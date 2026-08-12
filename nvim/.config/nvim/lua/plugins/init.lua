@@ -161,10 +161,13 @@ return {
 	-- Treesitter (properly configured)
 	{
 		"nvim-treesitter/nvim-treesitter",
+		-- upstream made `main` the default branch; that rewrite drops
+		-- `nvim-treesitter.configs` and the inline module config used below
+		branch = "master",
 		build = ":TSUpdate",
 		event = { "BufReadPost", "BufNewFile" },
 		dependencies = {
-			"nvim-treesitter/nvim-treesitter-textobjects",
+			{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "master" },
 			"nvim-treesitter/nvim-treesitter-context",
 		},
 		config = function()
