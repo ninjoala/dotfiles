@@ -220,6 +220,19 @@ if [[ ${#TS_EXTRA_SEARCH_PATHS[@]} -gt 0 ]]; then
     TS_SEARCH_PATHS+=("${TS_EXTRA_SEARCH_PATHS[@]}")
 fi
 
+# resolve a search path case-insensitively, e.g. ~/projects finds ~/Projects
+resolve_path() {
+    local p="$1" parent base match
+    [[ -d "$p" ]] && { echo "$p"; return; }
+
+    parent=$(dirname "$p")
+    base=$(basename "$p")
+    [[ -d "$parent" ]] || { echo "$p"; return; }
+
+    match=$(find "$parent" -mindepth 1 -maxdepth 1 -type d -iname "$base" -print -quit 2>/dev/null)
+    echo "${match:-$p}"
+}
+
 # utility function to find directories
 find_dirs() {
     # list TMUX sessions
@@ -235,12 +248,15 @@ find_dirs() {
     # if there is no number, it will search for directories with a max depth defined by TS_MAX_DEPTH or 1 if not set
     for entry in "${TS_SEARCH_PATHS[@]}"; do
         # Check if entry as :number as suffix then adapt the maxdepth parameter
+        depth=""
         if [[ "$entry" =~ ^([^:]+):([0-9]+)$ ]]; then
             path="${BASH_REMATCH[1]}"
             depth="${BASH_REMATCH[2]}"
         else
             path="$entry"
         fi
+
+        path=$(resolve_path "$path")
 
         [[ -d "$path" ]] && find "$path" -mindepth 1 -maxdepth "${depth:-${TS_MAX_DEPTH:-1}}" -path '*/.git' -prune -o -type d -print
     done

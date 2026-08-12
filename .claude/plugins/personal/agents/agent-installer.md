@@ -106,7 +106,7 @@ When user says "copy this agent from boosted to global":
 
 1. **Read the source agent**:
 ```bash
-cat ~/Projects/boosted/.claude/agents/some-agent.md
+cat ~/projects/boosted/.claude/agents/some-agent.md
 ```
 
 2. **Determine if it should be global**:
