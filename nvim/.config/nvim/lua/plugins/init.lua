@@ -27,11 +27,32 @@ return {
 		"ThePrimeagen/harpoon",
 		branch = "harpoon2",
 		dependencies = { "nvim-lua/plenary.nvim" },
+		config = function()
+			local harpoon = require("harpoon")
+			harpoon:setup()
+			vim.keymap.set("n", "<leader>a", function()
+				harpoon:list():add()
+			end, { desc = "Add file to Harpoon" })
+			vim.keymap.set("n", "<C-e>", function()
+				harpoon.ui:toggle_quick_menu(harpoon:list())
+			end, { desc = "Harpoon menu" })
+			for index, lhs in ipairs({ "<C-h>", "<C-j>", "<C-k>", "<C-l>" }) do
+				vim.keymap.set("n", lhs, function()
+					harpoon:list():select(index)
+				end, { desc = "Harpoon file " .. index })
+			end
+			vim.keymap.set("n", "<C-S-P>", function()
+				harpoon:list():prev()
+			end, { desc = "Previous Harpoon file" })
+			vim.keymap.set("n", "<C-S-N>", function()
+				harpoon:list():next()
+			end, { desc = "Next Harpoon file" })
+		end,
 	},
 
 	-- Mason (LSP installer)
 	{
-		"williamboman/mason.nvim",
+		"mason-org/mason.nvim",
 		build = ":MasonUpdate",
 		lazy = false,
 		priority = 900, -- Load right after theme but before other plugins
@@ -48,19 +69,23 @@ return {
 			},
 			max_concurrent_installers = 4,
 		},
+		config = function(_, opts)
+			require("mason").setup(opts)
+			require("ninjoala.mason").setup()
+		end,
 	},
 
 	-- Mason-LSPConfig bridge
 	{
-		"williamboman/mason-lspconfig.nvim",
+		"mason-org/mason-lspconfig.nvim",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
-			"williamboman/mason.nvim",
+			"mason-org/mason.nvim",
 			"neovim/nvim-lspconfig",
 		},
 		opts = {
 			ensure_installed = { "lua_ls", "pyright", "ts_ls", "html", "cssls", "jsonls" },
-			automatic_installation = true,
+			automatic_enable = true,
 		},
 	},
 
@@ -68,12 +93,8 @@ return {
 	{
 		"neovim/nvim-lspconfig",
 		event = { "BufReadPre", "BufNewFile" },
-		dependencies = {
-			"williamboman/mason-lspconfig.nvim",
-			"hrsh7th/cmp-nvim-lsp",
-		},
+		dependencies = { "hrsh7th/cmp-nvim-lsp" },
 		config = function()
-			local lspconfig = require("lspconfig")
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 			-- Simple diagnostic config
@@ -87,7 +108,7 @@ return {
 			-- Setup all servers with default config
 			local servers = { "lua_ls", "pyright", "html", "cssls", "jsonls", "ts_ls" }
 			for _, server in ipairs(servers) do
-				lspconfig[server].setup({
+				vim.lsp.config(server, {
 					capabilities = capabilities,
 				})
 			end
@@ -158,75 +179,90 @@ return {
 		end,
 	},
 
-	-- Treesitter (properly configured)
+	-- Treesitter
 	{
 		"nvim-treesitter/nvim-treesitter",
-		-- upstream made `main` the default branch; that rewrite drops
-		-- `nvim-treesitter.configs` and the inline module config used below
-		branch = "master",
+		branch = "main",
+		lazy = false,
 		build = ":TSUpdate",
-		event = { "BufReadPost", "BufNewFile" },
 		dependencies = {
-			{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "master" },
+			{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
 			"nvim-treesitter/nvim-treesitter-context",
 		},
 		config = function()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = {
-					"vim",
-					"lua",
-					"vimdoc",
-					"html",
-					"css",
-					"javascript",
-					"typescript",
-					"c_sharp",
-					"python",
-					"json",
-					"bicep",
-				},
-				sync_install = false,
-				auto_install = true,
-				highlight = {
-					enable = true,
-					additional_vim_regex_highlighting = false,
-				},
-				indent = { enable = true },
-				textobjects = {
-					select = {
-						enable = true,
-						lookahead = true,
-						keymaps = {
-							["af"] = "@function.outer",
-							["if"] = "@function.inner",
-							["ac"] = "@class.outer",
-							["ic"] = "@class.inner",
-							["aa"] = "@parameter.outer",
-							["ia"] = "@parameter.inner",
-						},
-					},
-					move = {
-						enable = true,
-						set_jumps = true,
-						goto_next_start = {
-							["]m"] = "@function.outer",
-							["]]"] = "@class.outer",
-						},
-						goto_next_end = {
-							["]M"] = "@function.outer",
-							["]["] = "@class.outer",
-						},
-						goto_previous_start = {
-							["[m"] = "@function.outer",
-							["[["] = "@class.outer",
-						},
-						goto_previous_end = {
-							["[M"] = "@function.outer",
-							["[]"] = "@class.outer",
-						},
-					},
-				},
+			local languages = {
+				"vim",
+				"lua",
+				"vimdoc",
+				"query",
+				"html",
+				"css",
+				"javascript",
+				"typescript",
+				"c",
+				"c_sharp",
+				"python",
+				"json",
+				"bicep",
+			}
+			local filetypes = {
+				"vim",
+				"lua",
+				"help",
+				"query",
+				"html",
+				"css",
+				"javascript",
+				"typescript",
+				"c",
+				"cs",
+				"python",
+				"json",
+				"bicep",
+			}
+			local treesitter = require("nvim-treesitter")
+			treesitter.setup()
+			if #vim.api.nvim_list_uis() > 0 then
+				treesitter.install(languages)
+			end
+
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = filetypes,
+				callback = function(args)
+					vim.treesitter.start(args.buf)
+					vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				end,
 			})
+
+			require("nvim-treesitter-textobjects").setup({
+				select = { lookahead = true },
+				move = { set_jumps = true },
+			})
+			local select = require("nvim-treesitter-textobjects.select")
+			local move = require("nvim-treesitter-textobjects.move")
+			local function map_select(lhs, capture)
+				vim.keymap.set({ "x", "o" }, lhs, function()
+					select.select_textobject(capture, "textobjects")
+				end)
+			end
+			local function map_move(lhs, method, capture)
+				vim.keymap.set({ "n", "x", "o" }, lhs, function()
+					move[method](capture, "textobjects")
+				end)
+			end
+
+			map_select("af", "@function.outer")
+			map_select("if", "@function.inner")
+			map_select("ac", "@class.outer")
+			map_select("ic", "@class.inner")
+			map_move("]m", "goto_next_start", "@function.outer")
+			map_move("]]", "goto_next_start", "@class.outer")
+			map_move("]M", "goto_next_end", "@function.outer")
+			map_move("][", "goto_next_end", "@class.outer")
+			map_move("[m", "goto_previous_start", "@function.outer")
+			map_move("[[", "goto_previous_start", "@class.outer")
+			map_move("[M", "goto_previous_end", "@function.outer")
+			map_move("[]", "goto_previous_end", "@class.outer")
 
 			-- Setup treesitter-context
 			require("treesitter-context").setup({
@@ -320,6 +356,8 @@ return {
 			vim.keymap.set("n", "<leader>ct", "<cmd>checktime<CR>", { desc = "Check for file changes" })
 
 			require("gitsigns").setup({
+				attach_to_untracked = true,
+				word_diff = true,
 				signs = {
 					add = { text = "│" },
 					change = { text = "│" },
@@ -329,31 +367,44 @@ return {
 					untracked = { text = "┆" },
 				},
 				on_attach = function(bufnr)
-					local gs = package.loaded.gitsigns
+					local gs = require("gitsigns")
+					local map = function(mode, lhs, rhs, desc)
+						vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+					end
 
 					-- Navigation
-					vim.keymap.set("n", "]c", function()
+					map("n", "]h", function()
 						if vim.wo.diff then
-							return "]c"
+							vim.cmd.normal({ "]c", bang = true })
+							return
 						end
-						vim.schedule(function()
-							gs.next_hunk()
-						end)
-						return "<Ignore>"
-					end, { expr = true, buffer = bufnr })
+						gs.nav_hunk("next")
+					end, "Next git hunk")
 
-					vim.keymap.set("n", "[c", function()
+					map("n", "[h", function()
 						if vim.wo.diff then
-							return "[c"
+							vim.cmd.normal({ "[c", bang = true })
+							return
 						end
-						vim.schedule(function()
-							gs.prev_hunk()
-						end)
-						return "<Ignore>"
-					end, { expr = true, buffer = bufnr })
+						gs.nav_hunk("prev")
+					end, "Previous git hunk")
+
+					-- Hunk review and staging
+					map("n", "<leader>hp", gs.preview_hunk_inline, "Preview git hunk inline")
+					map("n", "<leader>hb", function()
+						gs.blame_line({ full = true })
+					end, "Blame current line")
+					map("n", "<leader>hd", gs.diffthis, "Diff file against index")
+					map("n", "<leader>hD", function()
+						gs.diffthis("~")
+					end, "Diff file against HEAD")
+					map({ "n", "x" }, "<leader>hs", gs.stage_hunk, "Stage git hunk")
+					map("n", "<leader>hu", gs.undo_stage_hunk, "Undo staged hunk")
+					map({ "n", "x" }, "<leader>hr", gs.reset_hunk, "Reset git hunk")
+					map({ "o", "x" }, "ih", gs.select_hunk, "Select git hunk")
 
 					-- View hunks
-					vim.keymap.set("n", "<leader>gL", function()
+					map("n", "<leader>gL", function()
 						gs.setqflist("all")
 						vim.defer_fn(function()
 							vim.cmd("cclose") -- Close the quickfix window if it's open
@@ -361,13 +412,36 @@ return {
 								theme = "dropdown",
 							})
 						end, 100)
-					end, { buffer = bufnr, desc = "List git hunks" })
-
-					-- Preview hunk inline
-					vim.keymap.set("n", "<leader>hl", gs.preview_hunk, { buffer = bufnr, desc = "Preview git hunk" })
+					end, "List repository hunks")
 				end,
 			})
 		end,
+	},
+
+	-- Full repository and PR-style diffs
+	{
+		"esmuellert/codediff.nvim",
+		cmd = "CodeDiff",
+		keys = {
+			{ "<leader>gd", "<cmd>CodeDiff<cr>", desc = "Review working tree" },
+			{
+				"<leader>gD",
+				function()
+					local candidates = { "origin/HEAD", "origin/main", "origin/master", "main", "master" }
+					for _, base in ipairs(candidates) do
+						local result = vim.system({ "git", "rev-parse", "--verify", "--quiet", base }):wait()
+						if result.code == 0 then
+							vim.cmd("CodeDiff " .. base .. "...HEAD")
+							return
+						end
+					end
+					vim.notify("Could not find a default branch to review against", vim.log.levels.ERROR)
+				end,
+				desc = "Review branch against default branch",
+			},
+			{ "<leader>gF", "<cmd>CodeDiff history %<cr>", desc = "Current file history" },
+			{ "<leader>gH", "<cmd>CodeDiff history<cr>", desc = "Repository history" },
+		},
 	},
 
 	-- Status line (properly configured)
@@ -448,7 +522,7 @@ return {
 				},
 				format_on_save = {
 					timeout_ms = 500,
-					lsp_fallback = true,
+					lsp_format = "fallback",
 				},
 			})
 		end,
@@ -473,7 +547,7 @@ return {
 				-- Only show when manually triggered
 				delay = 999999, -- Very long delay to effectively disable auto-show
 			})
-			
+
 			-- Register key groups for better organization (new format)
 			wk.add({
 				{ "<leader>f", group = "find/lsp" },
@@ -485,7 +559,7 @@ return {
 				{ "<leader>c", group = "code" },
 				{ "<leader>h", group = "hunk/window" },
 			})
-			
+
 			-- Manual trigger keymap
 			vim.keymap.set("n", "<leader>?", function()
 				wk.show()
@@ -493,81 +567,45 @@ return {
 		end,
 	},
 
-	-- Fugitive for Git commands
+	-- Magit-style Git status and operations
 	{
-		"tpope/vim-fugitive",
-		event = "VeryLazy",
-		config = function()
-			-- Add keymaps that integrate with telescope where possible
-			vim.keymap.set("n", "<leader>gs", function()
-				require("telescope.builtin").git_status()
-			end, { desc = "Git status (Telescope)" })
+		"NeogitOrg/neogit",
+		cmd = "Neogit",
+		keys = {
+			{ "<leader>gg", "<cmd>Neogit<cr>", desc = "Open Neogit" },
+			{ "<leader>gc", "<cmd>Neogit commit<cr>", desc = "Git commit" },
+			{ "<leader>gb", "<cmd>Neogit branch<cr>", desc = "Git branches" },
+			{ "<leader>gl", "<cmd>Neogit log<cr>", desc = "Git log" },
+		},
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-telescope/telescope.nvim",
+			"esmuellert/codediff.nvim",
+		},
+		opts = {
+			integrations = { telescope = true, codediff = true },
+			diff_viewer = "codediff",
+		},
+	},
 
-			vim.keymap.set("n", "<leader>gc", function()
-				-- Use telescope git_commits for commit history
-				require("telescope.builtin").git_commits({
-					theme = "dropdown",
-					previewer = true,
-					layout_config = {
-						height = 0.8,
-						width = 0.9,
-						horizontal = {
-							preview_width = 0.6,
-						},
-					},
-				})
-			end, { desc = "Git commits (Telescope)" })
-
-			vim.keymap.set("n", "<leader>gb", function()
-				-- Use telescope git_bcommits for current buffer commit history
-				require("telescope.builtin").git_bcommits({
-					theme = "dropdown",
-					previewer = true,
-					layout_config = {
-						height = 0.8,
-						width = 0.9,
-						horizontal = {
-							preview_width = 0.6,
-						},
-					},
-				})
-			end, { desc = "Git blame (Telescope)" })
-
-			-- Regular fugitive commands for operations that can't use telescope
-			vim.keymap.set("n", "<leader>gp", "<cmd>Git push<CR>", { desc = "Git push" })
-			vim.keymap.set("n", "<leader>gl", "<cmd>Git pull<CR>", { desc = "Git pull" })
-			vim.keymap.set("n", "<leader>gC", "<cmd>Git commit<CR>", { desc = "Open commit window" })
-
-			-- Additional telescope git commands
-			vim.keymap.set("n", "<leader>gB", function()
-				-- Use telescope git_branches
-				require("telescope.builtin").git_branches({
-					theme = "dropdown",
-					previewer = true,
-					layout_config = {
-						height = 0.8,
-						width = 0.9,
-						horizontal = {
-							preview_width = 0.6,
-						},
-					},
-				})
-			end, { desc = "Git branches (Telescope)" })
-
-			vim.keymap.set("n", "<leader>gS", function()
-				-- Use telescope git_stash
-				require("telescope.builtin").git_stash({
-					theme = "dropdown",
-					previewer = true,
-					layout_config = {
-						height = 0.8,
-						width = 0.9,
-						horizontal = {
-							preview_width = 0.6,
-						},
-					},
-				})
-			end, { desc = "Git stash (Telescope)" })
-		end,
+	-- GitHub pull request review and inline comments
+	{
+		"pwntester/octo.nvim",
+		cmd = "Octo",
+		keys = {
+			{ "<leader>go", "<cmd>Octo pr list<cr>", desc = "GitHub pull requests" },
+			{ "<leader>gR", "<cmd>Octo review<cr>", desc = "Start GitHub PR review" },
+			{ "<leader>gA", "<cmd>Octo review submit<cr>", desc = "Submit GitHub PR review" },
+		},
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"nvim-telescope/telescope.nvim",
+			"nvim-tree/nvim-web-devicons",
+		},
+		opts = {
+			picker = "telescope",
+			enable_builtin = true,
+			suppress_missing_scope = { projects_v2 = true },
+		},
 	},
 }

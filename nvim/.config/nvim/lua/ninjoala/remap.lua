@@ -26,7 +26,7 @@ vim.keymap.set("n", "<leader>so", ":source $MYVIMRC<CR>", { desc = "Source (relo
 -- Quick File Search (leader + pf) - Find files
 vim.keymap.set("n", "<leader>pf", function()
 	require("telescope.builtin").find_files({
-		cwd = vim.loop.cwd(),
+		cwd = vim.uv.cwd(),
 		hidden = true,
 	})
 end, { desc = "Project Files" })
@@ -59,13 +59,12 @@ vim.keymap.set("n", "<leader>sx", vim.cmd.close, { desc = "Close Split" })
 
 -- Diagnostic keymaps
 vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Open Diagnostic Float" })
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous Diagnostic" })
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next Diagnostic" })
-
--- Git mappings
-vim.keymap.set("n", "<leader>gb", ":Gitsigns toggle_current_line_blame<CR>", { desc = "Toggle Git Blame" })
-vim.keymap.set("n", "<leader>gp", ":Gitsigns preview_hunk<CR>", { desc = "Preview Git Hunk" })
-vim.keymap.set("n", "<leader>gr", ":Gitsigns reset_hunk<CR>", { desc = "Reset Git Hunk" })
+vim.keymap.set("n", "[d", function()
+	vim.diagnostic.jump({ count = -1, float = true })
+end, { desc = "Previous Diagnostic" })
+vim.keymap.set("n", "]d", function()
+	vim.diagnostic.jump({ count = 1, float = true })
+end, { desc = "Next Diagnostic" })
 
 -- Keymaps
 local map = vim.keymap.set
@@ -86,48 +85,6 @@ map("v", "d", '"_d', opts)
 
 -- Clear search highlighting
 vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { noremap = true, silent = true, desc = "Clear search highlighting" })
-
--- Load plugin-specific keymaps after plugins are initialized
-vim.api.nvim_create_autocmd("User", {
-	pattern = "LazyLoad",
-	callback = function()
-		-- Harpoon setup
-		local ok, harpoon = pcall(require, "harpoon")
-		if ok then
-			harpoon:setup()
-
-			-- Harpoon keymaps
-			map("n", "<leader>a", function()
-				harpoon:list():add()
-			end, opts)
-			map("n", "<C-e>", function()
-				harpoon.ui:toggle_quick_menu(harpoon:list())
-			end, opts)
-
-			-- Navigate to files
-			map("n", "<C-h>", function()
-				harpoon:list():select(1)
-			end, opts)
-			map("n", "<C-j>", function()
-				harpoon:list():select(2)
-			end, opts)
-			map("n", "<C-k>", function()
-				harpoon:list():select(3)
-			end, opts)
-			map("n", "<C-l>", function()
-				harpoon:list():select(4)
-			end, opts)
-
-			-- Toggle previous & next buffers stored within Harpoon list
-			map("n", "<C-S-P>", function()
-				harpoon:list():prev()
-			end, opts)
-			map("n", "<C-S-N>", function()
-				harpoon:list():next()
-			end, opts)
-		end
-	end,
-})
 
 -- Global LSP keymaps (single source of truth for all LSP servers)
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -159,17 +116,21 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
 		vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
 		vim.keymap.set("n", "<leader>f", function()
-			require("conform").format({ lsp_fallback = true })
+			require("conform").format({ lsp_format = "fallback" })
 		end, opts)
 		vim.keymap.set("v", "<leader>f", function()
-			require("conform").format({ lsp_fallback = true })
+			require("conform").format({ lsp_format = "fallback" })
 		end, opts)
 		vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
 
 		-- Diagnostics with Telescope
 		vim.keymap.set("n", "<leader>d", require("telescope.builtin").diagnostics, opts)
-		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-		vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+		vim.keymap.set("n", "[d", function()
+			vim.diagnostic.jump({ count = -1, float = true })
+		end, opts)
+		vim.keymap.set("n", "]d", function()
+			vim.diagnostic.jump({ count = 1, float = true })
+		end, opts)
 	end,
 })
 

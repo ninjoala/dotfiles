@@ -1,6 +1,6 @@
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -18,15 +18,6 @@ vim.g.maplocalleader = " "
 
 -- Load plugins
 require("lazy").setup("plugins")
-
--- Setup Mason packages after plugins are loaded (simplified)
-vim.api.nvim_create_autocmd("User", {
-	pattern = "LazyDone",
-	callback = function()
-		-- Setup formatters and tools via mason.lua
-		require("ninjoala.mason").setup()
-	end,
-})
 
 -- Netrw settings
 vim.g.netrw_keepj = ""
@@ -88,4 +79,3 @@ opt.scrolloff = 8 -- Keep 8 lines above/below cursor
 -- Fast escape alternative
 vim.keymap.set("i", "jk", "<Esc>", { noremap = true, silent = true })
 vim.keymap.set("v", "jk", "<Esc>", { noremap = true, silent = true })
-
