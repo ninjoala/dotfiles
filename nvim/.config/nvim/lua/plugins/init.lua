@@ -36,7 +36,8 @@ return {
 			vim.keymap.set("n", "<C-e>", function()
 				harpoon.ui:toggle_quick_menu(harpoon:list())
 			end, { desc = "Harpoon menu" })
-			for index, lhs in ipairs({ "<C-h>", "<C-j>", "<C-k>", "<C-l>" }) do
+			-- Keep Ctrl-h/j/k/l available for Herdr navigation.
+			for index, lhs in ipairs({ "<leader>1", "<leader>2", "<leader>3", "<leader>4" }) do
 				vim.keymap.set("n", lhs, function()
 					harpoon:list():select(index)
 				end, { desc = "Harpoon file " .. index })
@@ -99,10 +100,19 @@ return {
 
 			-- Simple diagnostic config
 			vim.diagnostic.config({
-				virtual_text = true,
+				virtual_text = {
+					spacing = 4,
+					prefix = "●",
+					source = "if_many",
+				},
 				signs = true,
 				underline = true,
 				update_in_insert = false,
+				severity_sort = true,
+				float = {
+					border = "rounded",
+					source = "if_many",
+				},
 			})
 
 			-- Setup all servers with default config
@@ -451,15 +461,22 @@ return {
 		config = function()
 			require("lualine").setup({
 				options = {
-					component_separators = "|",
+					component_separators = "",
 					section_separators = "",
+					globalstatus = true,
 				},
 				sections = {
 					lualine_a = { "mode" },
-					lualine_b = { "branch", "diff", "diagnostics" },
-					lualine_c = { "filename" },
-					lualine_x = { "encoding", "fileformat", "filetype" },
-					lualine_y = { "progress" },
+					lualine_b = { "branch" },
+					lualine_c = {
+						{
+							"filename",
+							path = 1, -- project-relative path, not just the basename
+							shorting_target = 10,
+						},
+					},
+					lualine_x = { "diagnostics" },
+					lualine_y = {},
 					lualine_z = { "location" },
 				},
 			})
@@ -533,19 +550,15 @@ return {
 		"wellle/targets.vim",
 	},
 
-	-- Which-key for manual keymap display
+	-- LazyVim-style automatic keymap display
 	{
 		"folke/which-key.nvim",
 		event = "VeryLazy",
 		config = function()
 			local wk = require("which-key")
 			wk.setup({
-				-- Disable automatic triggers
-				triggers = {
-					{ "<auto>", mode = "nixsotc" }, -- Don't auto-trigger on space
-				},
-				-- Only show when manually triggered
-				delay = 999999, -- Very long delay to effectively disable auto-show
+				preset = "helix",
+				delay = 200,
 			})
 
 			-- Register key groups for better organization (new format)

@@ -23,11 +23,13 @@ vim.keymap.set("x", "<leader>p", '"_dp', { desc = "paste and delete highlighted,
 -- Reload config
 vim.keymap.set("n", "<leader>so", ":source $MYVIMRC<CR>", { desc = "Source (reload) config" })
 
--- Quick File Search (leader + pf) - Find files
+-- Project file picker that includes hidden and gitignored files.
 vim.keymap.set("n", "<leader>pf", function()
 	require("telescope.builtin").find_files({
 		cwd = vim.uv.cwd(),
 		hidden = true,
+		no_ignore = true,
+		no_ignore_parent = true,
 	})
 end, { desc = "Project Files" })
 
@@ -36,20 +38,11 @@ vim.keymap.set("n", "<leader>gf", function()
 	require("telescope.builtin").git_files()
 end, { desc = "Git Files" })
 
--- Project Search (leader + ps) - Live grep respecting .gitignore
+-- Project text search uses the Telescope defaults configured in plugins/init,
+-- including --hidden and --no-ignore.
 vim.keymap.set("n", "<leader>ps", function()
-	require("telescope.builtin").live_grep({
-		vimgrep_arguments = {
-			"rg",
-			"--color=never",
-			"--no-heading",
-			"--with-filename",
-			"--line-number",
-			"--column",
-			"--smart-case",
-		},
-	})
-end, { desc = "Project Search (live grep)" })
+	require("telescope.builtin").live_grep()
+end, { desc = "Project Search" })
 
 -- Window management
 vim.keymap.set("n", "<leader>sv", vim.cmd.vsplit, { desc = "Split Vertically" })
@@ -139,6 +132,12 @@ map("n", "<leader>h", "<C-w>h", opts)
 map("n", "<leader>j", "<C-w>j", opts)
 map("n", "<leader>k", "<C-w>k", opts)
 map("n", "<leader>l", "<C-w>l", opts)
+
+-- Herdr owns Ctrl-h/j/k/l for agent and tab navigation. Neovim 0.12 adds a
+-- default Ctrl-l mapping, so clear all four explicitly.
+for _, lhs in ipairs({ "<C-h>", "<C-j>", "<C-k>", "<C-l>" }) do
+	pcall(vim.keymap.del, "n", lhs)
+end
 
 vim.keymap.set("n", "Q", "<nop>")
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
